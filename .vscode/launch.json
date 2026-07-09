@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API: Dev",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/apps/api/src/server.ts",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeArgs": ["--loader", "tsx"],
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Web: Vite",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/apps/web"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Spitster: Full Stack",
+      "configurations": ["API: Dev", "Web: Vite"]
+    }
+  ]
+}
