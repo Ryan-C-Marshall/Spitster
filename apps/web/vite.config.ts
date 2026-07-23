@@ -14,13 +14,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     https: httpsOptions,
+    host: '127.0.0.1',
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:3001',
-      '/auth': 'http://localhost:3001',
-      '/spotify': 'http://localhost:3001',
-      '/quiz': 'http://localhost:3001',
-      '/health': 'http://localhost:3001',
+      '/api': 'http://127.0.0.1:3001',
+      '/auth': 'http://127.0.0.1:3001',
+      '/spotify': 'http://127.0.0.1:3001',
+      '/quiz': 'http://127.0.0.1:3001',
+      '/health': 'http://127.0.0.1:3001',
     },
   },
 });

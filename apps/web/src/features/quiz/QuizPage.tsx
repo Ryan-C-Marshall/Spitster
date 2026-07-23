@@ -33,10 +33,15 @@ export function QuizPage() {
   }, [navigate, searchParams]);
 
   async function handleConnectNextPlayer() {
+    console.log('Connecting next player...');
     setIsBusy(true);
+
     try {
       window.location.assign('/auth/login');
-    } finally {
+    } catch (error) {
+      console.error('Error occurred while connecting next player:', error);
+    }
+    finally {
       setIsBusy(false);
     }
   }
