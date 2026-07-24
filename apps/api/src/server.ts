@@ -7,5 +7,5 @@ const env = getEnv();
 const app = createApp();
 
 app.listen(env.port, () => {
-  console.log(`API server listening on http://localhost:${env.port}`);
+  console.log(`API server listening on http://127.0.0.1:${env.port}`);
 });

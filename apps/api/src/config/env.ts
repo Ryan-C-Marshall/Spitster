@@ -4,7 +4,7 @@ import path from 'path';
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
-  FRONTEND_ORIGIN: z.string().url().default('https://127.0.0.1:5173'),
+  FRONTEND_ORIGIN: z.string().url().default('http://127.0.0.1:5173'),
   SESSION_SECRET: z.string().min(1).default('replace-me'),
   SPOTIFY_CLIENT_ID: z.string().min(1).optional(),
   SPOTIFY_REDIRECT_URI: z.string().url().optional(),
