@@ -17,6 +17,7 @@ export interface SpotifyConnectedAccount {
   spotifyUserId: string;
   displayName: string | null;
   username: string | null;
+  topTrack: SpotifyTrackSummary | null;
   tokens: SpotifyTokenBundle;
 }
 
@@ -24,6 +25,7 @@ export interface SpotifyConnectedAccountSummary {
   spotifyUserId: string;
   displayName: string | null;
   username: string | null;
+  topTrack: SpotifyTrackSummary | null;
 }
 
 export interface SpotifyPendingAuth {

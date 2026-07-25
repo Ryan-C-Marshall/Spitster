@@ -3,6 +3,8 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 
 import type {
   SpotifyConnectedAccountSummary,
+  SpotifyTrackSummary,
+  SpotifySessionState,
   SpotifySessionSummary,
   SpotifyTokenResponse,
   SpotifyUserProfile,
@@ -11,6 +13,7 @@ import type {
 import { getEnv } from '../config/env.js';
 import { SPOTIFY_SCOPE_STRING } from '../config/spotifyScopes.js';
 import { createEmptySpotifySessionState } from '../services/spotify/sessionStore.js';
+import { fetchUsersTopTracks } from '../services/spotify/spotifyWebApi.service.js';
 
 export const authRoutes = Router();
 
@@ -38,6 +41,28 @@ async function fetchSpotifyProfile(accessToken: string, apiBaseUrl: string) {
   }
 
   return (await response.json()) as SpotifyUserProfile;
+}
+
+async function setSelectedSpotifyAccount(spotifySession: SpotifySessionState, spotifyUserId: string) {
+  if (!spotifySession || !spotifyUserId || !spotifySession.connectedAccounts[spotifyUserId]) {
+    throw new Error('Invalid Spotify account selection');
+  }
+
+  spotifySession.selectedSpotifyUserId = spotifyUserId;
+}
+
+async function fetchTopTrack(spotifySession: SpotifySessionState, spotifyUserId: string) {
+
+  // get the new user's recent top songs
+  const topTracks = await fetchUsersTopTracks({
+    account: spotifySession.connectedAccounts[spotifyUserId],
+    apiBaseUrl: getEnv().spotifyApiBaseUrl,
+    timeRange: 'short_term',
+  });
+
+  console.log('Fetched top tracks for selected Spotify account:', spotifyUserId, 'Top tracks:', topTracks);
+
+  return topTracks.length > 0 ? topTracks[0] : null;
 }
 
 authRoutes.get('/login', (request: Request, response: Response) => {
@@ -69,6 +94,7 @@ authRoutes.get('/login', (request: Request, response: Response) => {
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
   authorizeUrl.searchParams.set('code_challenge', codeChallenge);
   authorizeUrl.searchParams.set('state', state);
+  authorizeUrl.searchParams.set('show_dialog', 'true');
 
   response.redirect(authorizeUrl.toString());
 });
@@ -76,15 +102,20 @@ authRoutes.get('/login', (request: Request, response: Response) => {
 authRoutes.get('/callback', async (request: Request, response: Response, next: NextFunction) => {
   try {
     const env = getEnv();
+    console.log('Spotify auth callback initiated. Request query:', request.query);
     const code = typeof request.query.code === 'string' ? request.query.code : null;
     const state = typeof request.query.state === 'string' ? request.query.state : null;
     const pendingAuth = state && request.session.spotify?.pendingAuths[state] ? request.session.spotify.pendingAuths[state] : null;
 
-    console.log('Spotify auth callback recieved. Vars:', {
-      "code": code,
-      "state": state,
-      "pendingAuth": pendingAuth,
-    });
+    console.log(
+      'Spotify auth callback recieved. Vars:'
+      , {
+
+        "code": code,
+        "state": state,
+        "pendingAuth": pendingAuth,
+      }
+    );
 
     if (!code) {
       response.status(400).json({ error: 'Invalid auth callback. Missing code.' });
@@ -96,11 +127,10 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
       return;
     }
 
-    // Removed this as it doesn't seem necessary
-    // if (!pendingAuth) {
-    //   response.status(400).json({ error: 'Invalid auth callback. State does not match any pending auths.' });
-    //   return;
-    // }
+    if (!pendingAuth) {
+      response.status(400).json({ error: 'Invalid auth callback. State does not match any pending auths.' });
+      return;
+    }
 
     if (!env.spotifyClientId || !env.spotifyRedirectUri) {
       response.status(500).json({ error: 'Spotify env vars are not configured' });
@@ -133,12 +163,16 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     const tokens = (await tokenResponse.json()) as SpotifyTokenResponse;
     const profile = await fetchSpotifyProfile(tokens.access_token, env.spotifyApiBaseUrl);
 
+    console.log('Spotify auth callback successful. Profile:', profile);
+
     request.session.spotify ??= createEmptySpotifySessionState();
     delete request.session.spotify.pendingAuths[state];
+
     request.session.spotify.connectedAccounts[profile.id] = {
       spotifyUserId: profile.id,
       displayName: profile.display_name,
       username: profile.id,
+      topTrack: null,
       tokens: {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
@@ -147,7 +181,15 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
         tokenType: tokens.token_type,
       },
     };
-    request.session.spotify.selectedSpotifyUserId = profile.id;
+
+    // Need tokens to fetch top track
+    const topTrack = await fetchTopTrack(request.session.spotify, profile.id);
+    request.session.spotify.connectedAccounts[profile.id].topTrack = topTrack;
+
+
+    console.log('Selecting spotify account...');
+    await setSelectedSpotifyAccount(request.session.spotify, profile.id);
+    console.log('Connected new account. Full connected accounts:', request.session.spotify.connectedAccounts);
     request.session.spotify.quizPreparation = null;
 
     const redirectUrl = new URL(env.frontendOrigin);
@@ -155,8 +197,10 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     redirectUrl.searchParams.set('accountId', profile.id);
     response.redirect(redirectUrl.toString());
   } catch (error) {
+    console.error('Error during Spotify auth callback:', error);
+    
     const env = getEnv();
-    const redirectUrl = new URL('/auth/callback', env.frontendOrigin);
+    const redirectUrl = new URL(env.frontendOrigin);
     redirectUrl.searchParams.set('auth', 'failed');
     redirectUrl.searchParams.set('message', 'Failed to retrieve that player\'s Spotify account.');
     response.redirect(redirectUrl.toString());
@@ -176,12 +220,13 @@ authRoutes.get('/session', (request: Request, response: Response) => {
         spotifyUserId: account.spotifyUserId,
         displayName: account.displayName,
         username: account.username,
+        topTrack: account.topTrack,
       }),
     ),
   } satisfies SpotifySessionSummary);
 });
 
-authRoutes.post('/accounts/select', (request: Request, response: Response) => {
+authRoutes.post('/accounts/select', async (request: Request, response: Response) => {
   const spotifyUserId = typeof request.body?.spotifyUserId === 'string' ? request.body.spotifyUserId : null;
   const spotifySession = request.session.spotify;
 
@@ -190,7 +235,8 @@ authRoutes.post('/accounts/select', (request: Request, response: Response) => {
     return;
   }
 
-  spotifySession.selectedSpotifyUserId = spotifyUserId;
+  await setSelectedSpotifyAccount(spotifySession, spotifyUserId);
+
   response.json({
     selectedSpotifyUserId: spotifyUserId,
   });

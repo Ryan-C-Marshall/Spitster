@@ -2,7 +2,7 @@ import { Link, Route, Routes } from 'react-router-dom';
 
 import { AuthCallbackPage } from '../features/auth/AuthCallbackPage.js';
 import { QuizPage } from '../features/quiz/QuizPage.js';
-import { SpotifyPlayer } from '../features/player/SpotifyPlayer.js';
+import { PlayerProvider } from '../features/player/PlayerContext.js';
 
 export function App() {
   return (
@@ -17,13 +17,14 @@ export function App() {
       </header>
 
       <main className="main">
-        <Routes>
-          <Route path="/" element={<QuizPage />} />
-          <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        </Routes>
+        <PlayerProvider>
+          <Routes>
+            <Route path="/" element={<QuizPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          </Routes>
+        </PlayerProvider>
       </main>
 
-      <SpotifyPlayer />
     </div>
   );
 }

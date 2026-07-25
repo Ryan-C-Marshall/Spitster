@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { fetchSession, prepareQuiz, selectSpotifyAccount } from '../../lib/apiClient.js';
 import type { SpotifySessionSummary } from '@spitster/shared';
+import { usePlayer } from '../player/PlayerContext.js';
 
 export function QuizPage() {
   const navigate = useNavigate();
@@ -71,6 +72,16 @@ export function QuizPage() {
     }
   }
 
+  const { play, isReady } = usePlayer();
+
+  async function handlePlayTopTrack(trackUri: string | null) {
+  try {
+    await play(trackUri);
+  } catch (error) {
+    setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
+  }
+}
+
   return (
     <section className="panel">
       <div className="panel-header">
@@ -102,9 +113,13 @@ export function QuizPage() {
                 <div>
                   <h2>{account.displayName ?? account.spotifyUserId}</h2>
                   <p>{account.username ?? account.spotifyUserId}</p>
+                  <p>{account.topTrack?.name ?? 'No top track'}</p>
                 </div>
                 <button type="button" className="text-button" onClick={() => handleSelectAccount(account.spotifyUserId)} disabled={isBusy}>
                   {isSelected ? 'Selected' : 'Select'}
+                </button>
+                <button type="button" className="text-button" onClick={() => handlePlayTopTrack(account.topTrack?.uri ?? null)}>
+                  Play top track
                 </button>
               </article>
             );
