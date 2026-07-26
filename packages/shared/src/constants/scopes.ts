@@ -9,6 +9,7 @@ export const SPOTIFY_SCOPES = [
   'user-library-read',
   'playlist-read-private',
   'playlist-read-collaborative',
+  'streaming'
 ] as const;
 
 export type SpotifyScope = (typeof SPOTIFY_SCOPES)[number];

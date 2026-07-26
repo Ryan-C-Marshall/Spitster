@@ -9,6 +9,7 @@ export const SPOTIFY_AUTH_SCOPES = [
   'user-library-read',
   'playlist-read-private',
   'playlist-read-collaborative',
+  'streaming'
 ] as const;
 
 export const SPOTIFY_SCOPE_STRING = SPOTIFY_AUTH_SCOPES.join(' ');
