@@ -20,9 +20,10 @@ async function fetchPlayerAccessToken(): Promise<string> {
 
 interface SpotifyPlayerProps {
   onDeviceReady?: (deviceId: string) => void;
+  onPlaybackError?: (message: string) => void;
 }
 
-export function SpotifyPlayer({ onDeviceReady }: SpotifyPlayerProps) {
+export function SpotifyPlayer({ onDeviceReady, onPlaybackError }: SpotifyPlayerProps) {
   const playerRef = useRef<Spotify.Player | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
@@ -60,6 +61,10 @@ export function SpotifyPlayer({ onDeviceReady }: SpotifyPlayerProps) {
         console.error('Spotify player account error (Premium required?):', message);
         setStatus('error');
       });
+      player.addListener('playback_error', ({ message }) => {
+        console.error('Spotify playback error:', message);
+        onPlaybackError?.(message);
+      });
 
       player.connect();
       playerRef.current = player;
@@ -82,7 +87,7 @@ export function SpotifyPlayer({ onDeviceReady }: SpotifyPlayerProps) {
       playerRef.current?.disconnect();
       playerRef.current = null;
     };
-  }, [onDeviceReady]);
+  }, [onDeviceReady, onPlaybackError]);
 
   return <div id="spotify-player-anchor" aria-hidden="true" data-status={status} />;
 }

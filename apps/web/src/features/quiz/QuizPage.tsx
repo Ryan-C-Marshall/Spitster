@@ -56,6 +56,8 @@ export function QuizPage() {
   useEffect(() => {
     if (!pendingAutoPlayAccountId || !isReady || !session) return;
 
+    console.log('Attempting to auto-play top track for account:', pendingAutoPlayAccountId, 'on device:', isReady ? 'ready' : 'not ready');
+
     const account = session.connectedAccounts.find(
       (candidate) => candidate.spotifyUserId === pendingAutoPlayAccountId,
     );
@@ -83,7 +85,10 @@ export function QuizPage() {
   }
 
   async function handlePlayTrack(account: SpotifyConnectedAccountSummary, trackUri: string | null) {
-    if (account.topTrack?.uri === currentTrackUri) return;
+    if (account.topTrack?.uri === currentTrackUri) { 
+      console.log("Track is already playing."); return; 
+    }
+
     try {
       await play(trackUri);
     } catch (error) {
@@ -125,12 +130,12 @@ export function QuizPage() {
                 tabIndex={0}
                 aria-pressed={isPlaying}
                 onClick={() => handlePlayTrack(account, account.topTrack?.uri ?? null)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    handlePlayTrack(account, account.topTrack?.uri ?? null);
-                  }
-                }}
+                // onKeyDown={(event) => {
+                //   if (event.key === 'Enter' || event.key === ' ') {
+                //     event.preventDefault();
+                //     handlePlayTrack(account, account.topTrack?.uri ?? null);
+                //   }
+                // }}
               >
                 <div>
                   <h2>{account.displayName ?? account.spotifyUserId}</h2>
