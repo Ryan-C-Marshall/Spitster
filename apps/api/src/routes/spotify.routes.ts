@@ -7,7 +7,7 @@ export const spotifyRoutes = Router();
 
 spotifyRoutes.get('/me', requireSession, async (request, response) => {
   response.json({
-    selectedSpotifyUserId: request.session.spotify?.selectedSpotifyUserId ?? null,
+    hostSpotifyUserId: request.session.spotify?.hostSpotifyUserId ?? null,
     connectedAccounts: Object.values(request.session.spotify?.connectedAccounts ?? {}).map((account) => ({
       spotifyUserId: account.spotifyUserId,
       displayName: account.displayName,
@@ -22,13 +22,13 @@ spotifyRoutes.get('/me', requireSession, async (request, response) => {
 
 // Hands the frontend SDK a token to authenticate with
 spotifyRoutes.get('/me/player-token', requireSession, async (request, response) => {
-  const selectedSpotifyUserId = request.session.spotify?.selectedSpotifyUserId ?? null;
-  const account = selectedSpotifyUserId
-    ? request.session.spotify?.connectedAccounts[selectedSpotifyUserId]
+  const hostSpotifyUserId = request.session.spotify?.hostSpotifyUserId ?? null;
+  const account = hostSpotifyUserId
+    ? request.session.spotify?.connectedAccounts[hostSpotifyUserId]
     : null;
 
   if (!account) {
-    response.status(400).json({ error: 'No selected Spotify account' });
+    response.status(400).json({ error: 'No host Spotify account connected yet' });
     return;
   }
 
@@ -38,15 +38,13 @@ spotifyRoutes.get('/me/player-token', requireSession, async (request, response) 
 // Triggers playback on a given device
 spotifyRoutes.post('/me/player/play', requireSession, async (request, response) => {
   const spotifySession = request.session.spotify;
-  const selectedSpotifyUserId = spotifySession?.selectedSpotifyUserId ?? null;
-  const account = selectedSpotifyUserId ? spotifySession?.connectedAccounts[selectedSpotifyUserId] : null;
+  const hostSpotifyUserId = spotifySession?.hostSpotifyUserId ?? null;
+  const account = hostSpotifyUserId ? spotifySession?.connectedAccounts[hostSpotifyUserId] : null;
   const deviceId = typeof request.body?.deviceId === 'string' ? request.body.deviceId : undefined;
-  const trackUri = typeof request.body?.trackUri === 'string'
-    ? request.body.trackUri
-    : spotifySession?.connectedAccounts[selectedSpotifyUserId ?? '']?.topTrack?.uri;
+  const trackUri = typeof request.body?.trackUri === 'string' ? request.body.trackUri : undefined;
 
   if (!account || !trackUri) {
-    response.status(400).json({ error: 'No selected account or track to play' });
+    response.status(400).json({ error: 'No host account connected or no track to play' });
     return;
   }
 

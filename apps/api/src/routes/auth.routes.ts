@@ -43,14 +43,6 @@ async function fetchSpotifyProfile(accessToken: string, apiBaseUrl: string) {
   return (await response.json()) as SpotifyUserProfile;
 }
 
-async function setSelectedSpotifyAccount(spotifySession: SpotifySessionState, spotifyUserId: string) {
-  if (!spotifySession || !spotifyUserId || !spotifySession.connectedAccounts[spotifyUserId]) {
-    throw new Error('Invalid Spotify account selection');
-  }
-
-  spotifySession.selectedSpotifyUserId = spotifyUserId;
-}
-
 async function fetchTopTrack(spotifySession: SpotifySessionState, spotifyUserId: string) {
 
   // get the new user's recent top songs
@@ -186,10 +178,11 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     const topTrack = await fetchTopTrack(request.session.spotify, profile.id);
     request.session.spotify.connectedAccounts[profile.id].topTrack = topTrack;
 
+    // First account connected in this session becomes the playback host.
+    // Intentionally never overwritten by later logins.
+    request.session.spotify.hostSpotifyUserId ??= profile.id;
+    console.log('Connected new account. Host is:', request.session.spotify.hostSpotifyUserId);
 
-    console.log('Selecting spotify account...');
-    await setSelectedSpotifyAccount(request.session.spotify, profile.id);
-    console.log('Connected new account. Full connected accounts:', request.session.spotify.connectedAccounts);
     request.session.spotify.quizPreparation = null;
 
     const redirectUrl = new URL(env.frontendOrigin);
@@ -213,7 +206,7 @@ authRoutes.get('/session', (request: Request, response: Response) => {
 
   response.json({
     authenticated: connectedAccounts.length > 0,
-    selectedSpotifyUserId: spotifySession?.selectedSpotifyUserId ?? null,
+    hostSpotifyUserId: spotifySession?.hostSpotifyUserId ?? null,
     quizPreparation: spotifySession?.quizPreparation ?? null,
     connectedAccounts: connectedAccounts.map(
       (account): SpotifyConnectedAccountSummary => ({
@@ -221,25 +214,10 @@ authRoutes.get('/session', (request: Request, response: Response) => {
         displayName: account.displayName,
         username: account.username,
         topTrack: account.topTrack,
+        isHost: account.spotifyUserId === spotifySession?.hostSpotifyUserId,
       }),
     ),
   } satisfies SpotifySessionSummary);
-});
-
-authRoutes.post('/accounts/select', async (request: Request, response: Response) => {
-  const spotifyUserId = typeof request.body?.spotifyUserId === 'string' ? request.body.spotifyUserId : null;
-  const spotifySession = request.session.spotify;
-
-  if (!spotifySession || !spotifyUserId || !spotifySession.connectedAccounts[spotifyUserId]) {
-    response.status(400).json({ error: 'Invalid Spotify account selection' });
-    return;
-  }
-
-  await setSelectedSpotifyAccount(spotifySession, spotifyUserId);
-
-  response.json({
-    selectedSpotifyUserId: spotifyUserId,
-  });
 });
 
 authRoutes.post('/logout', (request: Request, response: Response) => {

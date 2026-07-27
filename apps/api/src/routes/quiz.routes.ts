@@ -46,7 +46,6 @@ quizRoutes.post('/prepare', requireSession, async (request, response) => {
 });
 
 quizRoutes.post('/generate', requireSession, async (request, response) => {
-  const selectedSpotifyUserId = request.session.spotify?.selectedSpotifyUserId ?? null;
   const spotifySession = request.session.spotify;
 
   if (!spotifySession || Object.keys(spotifySession.connectedAccounts).length === 0) {
@@ -64,7 +63,6 @@ quizRoutes.post('/generate', requireSession, async (request, response) => {
 
   const snapshot = await generateQuizSnapshot({
     quizKind: 'friends',
-    selectedSpotifyUserId,
     players,
     spotifySession,
   });

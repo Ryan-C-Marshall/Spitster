@@ -26,6 +26,7 @@ export interface SpotifyConnectedAccountSummary {
   displayName: string | null;
   username: string | null;
   topTrack: SpotifyTrackSummary | null;
+  isHost: boolean;
 }
 
 export interface SpotifyPendingAuth {
@@ -61,14 +62,14 @@ export interface SpotifyQuizPreparationState {
 export interface SpotifySessionState {
   pendingAuths: Record<string, SpotifyPendingAuth>;
   connectedAccounts: Record<string, SpotifyConnectedAccount>;
-  selectedSpotifyUserId: string | null;
+  hostSpotifyUserId: string | null;
   quizPreparation: SpotifyQuizPreparationState | null;
 }
 
 export interface SpotifySessionSummary {
   authenticated: boolean;
   connectedAccounts: SpotifyConnectedAccountSummary[];
-  selectedSpotifyUserId: string | null;
+  hostSpotifyUserId: string | null;
   quizPreparation: SpotifyQuizPreparationState | null;
 }
 

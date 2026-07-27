@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { fetchSession, prepareQuiz, selectSpotifyAccount } from '../../lib/apiClient.js';
-import type { SpotifySessionSummary } from '@spitster/shared';
+import { fetchSession, prepareQuiz } from '../../lib/apiClient.js';
+import type { SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 
 export function QuizPage() {
@@ -10,7 +10,9 @@ export function QuizPage() {
   const [searchParams] = useSearchParams();
   const [session, setSession] = useState<SpotifySessionSummary | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [pendingAutoPlayAccountId, setPendingAutoPlayAccountId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const { play, isReady, currentTrackUri } = usePlayer();
 
   useEffect(() => {
     fetchSession().then((data) => {
@@ -20,10 +22,12 @@ export function QuizPage() {
 
   useEffect(() => {
     const auth = searchParams.get('auth');
+    const accountId = searchParams.get('accountId');
     const message = searchParams.get('message');
 
     if (auth === 'success') {
       setStatusMessage('Player added to the lobby.');
+      setPendingAutoPlayAccountId(accountId);
       navigate('/', { replace: true });
     }
 
@@ -47,6 +51,23 @@ export function QuizPage() {
     }
   }
 
+  // Once the just-connected account shows up in the session with a top
+  // track, and the player has a device to send it to, start playback.
+  useEffect(() => {
+    if (!pendingAutoPlayAccountId || !isReady || !session) return;
+
+    const account = session.connectedAccounts.find(
+      (candidate) => candidate.spotifyUserId === pendingAutoPlayAccountId,
+    );
+    if (!account) return;
+
+    setPendingAutoPlayAccountId(null);
+
+    if (account.topTrack) {
+      handlePlayTrack(account, account.topTrack.uri);
+    }
+  }, [pendingAutoPlayAccountId, isReady, session]);
+
   async function handlePrepareQuiz() {
     setIsBusy(true);
     try {
@@ -61,26 +82,14 @@ export function QuizPage() {
     }
   }
 
-  async function handleSelectAccount(spotifyUserId: string) {
-    setIsBusy(true);
+  async function handlePlayTrack(account: SpotifyConnectedAccountSummary, trackUri: string | null) {
+    if (account.topTrack?.uri === currentTrackUri) return;
     try {
-      await selectSpotifyAccount(spotifyUserId);
-      const data = await fetchSession();
-      setSession(data.session ?? null);
-    } finally {
-      setIsBusy(false);
+      await play(trackUri);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
     }
   }
-
-  const { play, isReady } = usePlayer();
-
-  async function handlePlayTopTrack(trackUri: string | null) {
-  try {
-    await play(trackUri);
-  } catch (error) {
-    setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
-  }
-}
 
   return (
     <section className="panel">
@@ -106,21 +115,29 @@ export function QuizPage() {
       ) : (
         <div className="lobby-grid">
           {session.connectedAccounts.map((account) => {
-            const isSelected = session.selectedSpotifyUserId === account.spotifyUserId;
+            const isPlaying = account.topTrack?.uri != null && account.topTrack.uri === currentTrackUri;
 
             return (
-              <article className={`lobby-card${isSelected ? ' selected' : ''}`} key={account.spotifyUserId}>
+              <article
+                className={`lobby-card${account.isHost ? ' host' : ''}${isPlaying ? ' playing' : ''}`}
+                key={account.spotifyUserId}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isPlaying}
+                onClick={() => handlePlayTrack(account, account.topTrack?.uri ?? null)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handlePlayTrack(account, account.topTrack?.uri ?? null);
+                  }
+                }}
+              >
                 <div>
                   <h2>{account.displayName ?? account.spotifyUserId}</h2>
+                  {account.isHost ? <span className="host-badge">Host</span> : null}
                   <p>{account.username ?? account.spotifyUserId}</p>
                   <p>{account.topTrack?.name ?? 'No top track'}</p>
                 </div>
-                <button type="button" className="text-button" onClick={() => handleSelectAccount(account.spotifyUserId)} disabled={isBusy}>
-                  {isSelected ? 'Selected' : 'Select'}
-                </button>
-                <button type="button" className="text-button" onClick={() => handlePlayTopTrack(account.topTrack?.uri ?? null)}>
-                  Play top track
-                </button>
               </article>
             );
           })}

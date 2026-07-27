@@ -5,6 +5,7 @@ import { SpotifyPlayer } from './SpotifyPlayer';
 interface PlayerContextValue {
   deviceId: string | null;
   isReady: boolean;
+  currentTrackUri: string | null;
   play: (trackUri: string | null) => Promise<void>;
 }
 
@@ -12,6 +13,7 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [currentTrackUri, setCurrentTrackUri] = useState<string | null>(null);
 
   const play = useCallback(async (trackUri: string | null) => {
     console.log("Playing track:", trackUri, "on device:", deviceId);
@@ -33,11 +35,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (!response.ok) {
       throw new Error('Failed to start playback');
     }
+    setCurrentTrackUri(trackUri);
   }, [deviceId]);
 
   return (
-    <PlayerContext.Provider value={{ deviceId, isReady: deviceId !== null, play }}>
-      {children}
+  <PlayerContext.Provider value={{ deviceId, isReady: deviceId !== null, currentTrackUri, play }}>      {children}
       <SpotifyPlayer onDeviceReady={setDeviceId} />
     </PlayerContext.Provider>
   );

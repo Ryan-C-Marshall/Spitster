@@ -26,7 +26,6 @@ export interface QuizRound {
 
 export interface QuizSessionSnapshot {
   quizKind: QuizKind;
-  selectedSpotifyUserId: string | null;
   players: QuizPlayerInput[];
   rounds: QuizRound[];
   score: number;

@@ -130,6 +130,7 @@ button:disabled {
 }
 
 .lobby-card {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -140,9 +141,46 @@ button:disabled {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.lobby-card.selected {
+.lobby-card.host {
   border-color: rgba(141, 216, 255, 0.45);
   box-shadow: 0 0 0 1px rgba(141, 216, 255, 0.15) inset;
+}
+
+.lobby-card.playing {
+  border-color: transparent;
+}
+
+.lobby-card.playing::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--angle),
+    #8dd8ff,
+    rgba(141, 216, 255, 0.25),
+    #4f8ef7,
+    rgba(141, 216, 255, 0.25),
+    #8dd8ff
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: rotate-border 3s linear infinite;
+  pointer-events: none;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-border {
+  to {
+    --angle: 360deg;
+  }
 }
 
 .prep-state {

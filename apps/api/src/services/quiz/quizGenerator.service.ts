@@ -8,7 +8,6 @@ import { collectQuizSourceData } from './quizDataCollector.service.js';
 
 export async function generateQuizSnapshot(input: {
   quizKind: QuizSessionSnapshot['quizKind'];
-  selectedSpotifyUserId: string | null;
   players: QuizPlayerInput[];
   spotifySession: SpotifySessionState;
 }): Promise<QuizSessionSnapshot> {
@@ -18,7 +17,6 @@ export async function generateQuizSnapshot(input: {
 
   return {
     quizKind: input.quizKind,
-    selectedSpotifyUserId: input.selectedSpotifyUserId,
     players: mergePlayers(input.players, collectionResult),
     rounds: [
       {

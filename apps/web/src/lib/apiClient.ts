@@ -16,23 +16,6 @@ export async function fetchSession() {
   };
 }
 
-export async function selectSpotifyAccount(spotifyUserId: string) {
-  const response = await fetch('/auth/accounts/select', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ spotifyUserId }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Unable to select Spotify account');
-  }
-
-  return (await response.json()) as { selectedSpotifyUserId: string };
-}
-
 export async function prepareQuiz() {
   const response = await fetch('/quiz/prepare', {
     method: 'POST',
