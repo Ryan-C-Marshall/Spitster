@@ -38,7 +38,7 @@ export function SpotifyPlayer({ onDeviceReady, onPlaybackError }: SpotifyPlayerP
             .then(callback)
             .catch((error) => console.error('Failed to get Spotify access token', error));
         },
-        volume: 0.5,
+        volume: 0.25,
       });
 
       player.addListener('ready', ({ device_id }) => {
