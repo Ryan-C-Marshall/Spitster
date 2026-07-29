@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Define a constant for number of next files to preview
+PREVIEW_COUNT=3
+
 # Ensure we're at the root of a Git repository.
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
     echo "Error: not inside a Git repository."
@@ -60,7 +63,25 @@ for ((i=0; i<TOTAL; i++)); do
     file="${FILES[$i]}"
 
     while true; do
-        read -rp "[$((i+1))/$TOTAL] Include ${file}? [y/N/d] " ans
+        # Build a preview of the next five filenames.
+        next_files=""
+        for ((j=i+1; j<TOTAL && j<=i+PREVIEW_COUNT; j++)); do
+            name="$(basename "${FILES[$j]}")"
+
+            if [[ -n "$next_files" ]]; then
+                next_files="$next_files, $name"
+            else
+                next_files="$name"
+            fi
+        done
+
+        if [[ -n "$next_files" ]]; then
+            prompt="[$((i+1))/$TOTAL] ${file} (${next_files}) [y/N/d] "
+        else
+            prompt="[$((i+1))/$TOTAL] ${file} [y/N/d] "
+        fi
+
+        read -rp "$prompt" ans
 
         case "${ans:-n}" in
             y|Y)
