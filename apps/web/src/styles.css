@@ -86,12 +86,18 @@ body {
   justify-content: flex-end;
 }
 
-button {
+.primary-button,
+.secondary-button,
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 999px;
   padding: 0.85rem 1rem;
   font: inherit;
   cursor: pointer;
+  text-decoration: none;
 }
 
 button:disabled {
@@ -215,4 +221,30 @@ button:disabled {
   border-color: rgba(141, 216, 255, 0.6);
   background: rgba(141, 216, 255, 0.15);
   font-weight: 700;
+}
+
+.timer-track {
+  margin-top: 1.5rem;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.timer-fill {
+  height: 100%;
+  width: 0%;
+  background: #8dd8ff;
+  animation-name: timer-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes timer-fill {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
 }

@@ -61,6 +61,9 @@ export function QuizPage() {
           <h1>Quiz</h1>
         </div>
         <div className="panel-actions">
+          <Link to="/" className="secondary-button">
+            Back to lobby
+          </Link>
           <button type="button" className="primary-button" onClick={loadQuestion} disabled={isLoading}>
             Next question
           </button>
@@ -73,9 +76,15 @@ export function QuizPage() {
 
       {!isLoading && question ? <QuestionView question={question} revealed={revealed} /> : null}
 
-      <Link to="/" className="secondary-button">
-        Back to lobby
-      </Link>
+      {!isLoading && question ? (
+        <div className="timer-track">
+          <div
+            key={question.id}
+            className="timer-fill"
+            style={{ animationDuration: `${REVEAL_DELAY_MS}ms` }}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

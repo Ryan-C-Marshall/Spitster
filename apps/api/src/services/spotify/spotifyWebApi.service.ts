@@ -29,28 +29,27 @@ async function fetchJson<T>(url: string, accessToken: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+// Spotify hard-caps this endpoint at 50 items per time_range — there's no
+// pagination past it (offset >= 50 returns an empty list).
+const SPOTIFY_TOP_TRACKS_MAX_LIMIT = 50;
+
 export async function fetchPlayerCollectionData(input: {
   account: SpotifyConnectedAccount;
   apiBaseUrl: string;
+  limit?: number;
+  timeRange?: 'short_term' | 'medium_term' | 'long_term';
 }): Promise<SpotifyPlayerCollectedData> {
-  const topTracks = await fetchJson<SpotifyTopTracksResponse>(
-    `${input.apiBaseUrl}/me/top/tracks?limit=10&time_range=medium_term`,
-    input.account.tokens.accessToken,
-  );
+  const topTracks = await fetchUsersTopTracks({
+    account: input.account,
+    apiBaseUrl: input.apiBaseUrl,
+    timeRange: input.timeRange ?? 'medium_term',
+    limit: input.limit ?? SPOTIFY_TOP_TRACKS_MAX_LIMIT,
+  });
 
   return {
     spotifyUserId: input.account.spotifyUserId,
     displayName: input.account.displayName,
-    topTracks: topTracks.items.map((track): SpotifyTrackSummary => ({
-      id: track.id,
-      name: track.name,
-      uri: track.uri,
-      artists: track.artists.map((artist): SpotifyArtistSummary => ({
-        id: artist.id,
-        name: artist.name,
-        uri: artist.uri,
-      })),
-    })),
+    topTracks,
   };
 }
 
@@ -58,13 +57,13 @@ export async function fetchUsersTopTracks(input: {
   account: SpotifyConnectedAccount;
   apiBaseUrl: string;
   timeRange: 'short_term' | 'medium_term' | 'long_term' | null;
+  limit?: number;
 }): Promise<SpotifyTrackSummary[]> {
-  if (!input.timeRange) {
-    input.timeRange = 'medium_term';
-  }
+  const timeRange = input.timeRange ?? 'medium_term';
+  const limit = Math.min(input.limit ?? SPOTIFY_TOP_TRACKS_MAX_LIMIT, SPOTIFY_TOP_TRACKS_MAX_LIMIT);
 
   const topTracks = await fetchJson<SpotifyTopTracksResponse>(
-    `${input.apiBaseUrl}/me/top/tracks?limit=10&time_range=${input.timeRange}`,
+    `${input.apiBaseUrl}/me/top/tracks?limit=${limit}&time_range=${timeRange}`,
     input.account.tokens.accessToken,
   );
 
