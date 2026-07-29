@@ -10,6 +10,7 @@ export function QuestionView({ question, revealed }: { question: Question; revea
     case 'whose-top-track':
       return <WhoseTopTrackQuestionView question={question} revealed={revealed} />;
     default: {
+      // @ts-ignore
       const _exhaustive: never = question;
       return _exhaustive;
     }
