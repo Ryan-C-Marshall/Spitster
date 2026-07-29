@@ -1,71 +1,40 @@
 import { Router } from 'express';
 
 import { requireSession } from '../middleware/requireSession.js';
-import { generateQuizSnapshot } from '../services/quiz/quizGenerator.service.js';
+import { generateQuestion } from '../services/quiz/quizGenerator.service.js';
 import { collectQuizSourceData } from '../services/quiz/quizDataCollector.service.js';
-import type { QuizPlayerInput } from '@spitster/shared';
+import type { QuestionType } from '@spitster/shared';
 
 export const quizRoutes = Router();
 
-quizRoutes.post('/prepare', requireSession, async (request, response) => {
-  const spotifySession = request.session.spotify;
+const MIN_PLAYERS = 2;
 
-  if (!spotifySession || Object.keys(spotifySession.connectedAccounts).length === 0) {
-    response.status(400).json({ error: 'No connected Spotify accounts to prepare' });
+quizRoutes.post('/question', requireSession, async (request, response) => {
+  const spotifySession = request.session.spotify;
+  const accounts = Object.values(spotifySession?.connectedAccounts ?? {});
+
+  if (accounts.length < MIN_PLAYERS) {
+    response.status(400).json({ error: 'Connect at least two players before starting the quiz' });
     return;
   }
 
-  spotifySession.quizPreparation = {
-    status: 'collecting',
-    players: [],
-    errorMessage: null,
-  };
+  try {
+    // Fetched fresh on every question for now; a caching layer can sit in
+    // front of this once there are enough question types to make the
+    // repeated Spotify calls worth avoiding.
+    const collected = await collectQuizSourceData({ accounts });
 
-  const collected = await collectQuizSourceData({
-    accounts: Object.values(spotifySession.connectedAccounts),
-  });
+    const requestedType = request.body?.type as QuestionType | undefined;
+    const question = generateQuestion({ players: collected.players, type: requestedType });
 
-  const players: QuizPlayerInput[] = collected.players.map((player) => ({
-    displayName: player.displayName ?? player.spotifyUserId,
-    spotifyAccountId: player.spotifyUserId,
-    spotifyUserId: player.spotifyUserId,
-    spotifyUsername: spotifySession.connectedAccounts[player.spotifyUserId]?.username ?? player.spotifyUserId,
-    accessTokenSource: 'session',
-  }));
+    if (!question) {
+      response.status(422).json({ error: 'Not enough player data to build a question yet' });
+      return;
+    }
 
-  spotifySession.quizPreparation = {
-    status: 'ready',
-    players: collected.players,
-    errorMessage: null,
-  };
-
-  response.json({
-    status: 'ready',
-    players,
-  });
-});
-
-quizRoutes.post('/generate', requireSession, async (request, response) => {
-  const spotifySession = request.session.spotify;
-
-  if (!spotifySession || Object.keys(spotifySession.connectedAccounts).length === 0) {
-    response.status(400).json({ error: 'Connect Spotify accounts before generating a quiz' });
-    return;
+    response.json({ question });
+  } catch (error) {
+    console.error('Failed to generate question:', error);
+    response.status(502).json({ error: 'Failed to fetch data from Spotify' });
   }
-
-  const players: QuizPlayerInput[] = Object.values(spotifySession.connectedAccounts).map((account) => ({
-    displayName: account.displayName ?? account.spotifyUserId,
-    spotifyAccountId: account.spotifyUserId,
-    spotifyUserId: account.spotifyUserId,
-    spotifyUsername: account.username ?? account.spotifyUserId,
-    accessTokenSource: 'session',
-  }));
-
-  const snapshot = await generateQuizSnapshot({
-    quizKind: 'friends',
-    players,
-    spotifySession,
-  });
-
-  response.json(snapshot);
 });

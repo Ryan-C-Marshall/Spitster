@@ -183,8 +183,6 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     request.session.spotify.hostSpotifyUserId ??= profile.id;
     console.log('Connected new account. Host is:', request.session.spotify.hostSpotifyUserId);
 
-    request.session.spotify.quizPreparation = null;
-
     const redirectUrl = new URL(env.frontendOrigin);
     redirectUrl.searchParams.set('auth', 'success');
     redirectUrl.searchParams.set('accountId', profile.id);
@@ -207,7 +205,6 @@ authRoutes.get('/session', (request: Request, response: Response) => {
   response.json({
     authenticated: connectedAccounts.length > 0,
     hostSpotifyUserId: spotifySession?.hostSpotifyUserId ?? null,
-    quizPreparation: spotifySession?.quizPreparation ?? null,
     connectedAccounts: connectedAccounts.map(
       (account): SpotifyConnectedAccountSummary => ({
         spotifyUserId: account.spotifyUserId,

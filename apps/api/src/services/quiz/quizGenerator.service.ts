@@ -1,49 +1,45 @@
-import { randomUUID } from 'node:crypto';
+import type { Question, QuestionType, SpotifyPlayerCollectedData } from '@spitster/shared';
 
-import type { QuizPlayerInput, QuizSessionSnapshot, SpotifyQuizCollectionResult } from '@spitster/shared';
+import { whoseTopTrackGenerator } from './questionTypes/whoseTopTrack.js';
 
-import type { SpotifySessionState } from '@spitster/shared';
-
-import { collectQuizSourceData } from './quizDataCollector.service.js';
-
-export async function generateQuizSnapshot(input: {
-  quizKind: QuizSessionSnapshot['quizKind'];
-  players: QuizPlayerInput[];
-  spotifySession: SpotifySessionState;
-}): Promise<QuizSessionSnapshot> {
-  const collectionResult = await collectQuizSourceData({
-    accounts: Object.values(input.spotifySession.connectedAccounts),
-  });
-
-  return {
-    quizKind: input.quizKind,
-    players: mergePlayers(input.players, collectionResult),
-    rounds: [
-      {
-        id: randomUUID(),
-        prompt: 'Which track is the most recent release?',
-        answer: 'Placeholder answer',
-        distractors: ['Choice A', 'Choice B', 'Choice C'],
-        questionType: 'release-year',
-        sourceKind: input.quizKind,
-      },
-    ],
-    score: 0,
-    currentRoundIndex: 0,
-  };
+/**
+ * The contract every question type's generator implements. `generate`
+ * returns null when the currently-available player data can't support this
+ * question type (e.g. not enough players, no top tracks yet) — the caller
+ * tries the next candidate rather than failing outright.
+ */
+export interface QuestionGenerator<T extends Question = Question> {
+  type: T['type'];
+  generate(input: { players: SpotifyPlayerCollectedData[] }): T | null;
 }
 
-function mergePlayers(players: QuizPlayerInput[], collectionResult: SpotifyQuizCollectionResult): QuizPlayerInput[] {
-  return players.map((player) => {
-    const collectedPlayer = collectionResult.players.find((item) => item.spotifyUserId === player.spotifyUserId);
+// Adding a question type: implement a generator in ./questionTypes and
+// register it here. Nothing else in this file needs to change.
+const generators: QuestionGenerator[] = [whoseTopTrackGenerator];
 
-    if (!collectedPlayer) {
-      return player;
+export function generateQuestion(input: {
+  players: SpotifyPlayerCollectedData[];
+  type?: QuestionType;
+}): Question | null {
+  const candidates = shuffle(
+    input.type ? generators.filter((generator) => generator.type === input.type) : generators,
+  );
+
+  for (const generator of candidates) {
+    const question = generator.generate({ players: input.players });
+    if (question) {
+      return question;
     }
+  }
 
-    return {
-      ...player,
-      displayName: collectedPlayer.displayName ?? player.displayName,
-    };
-  });
+  return null;
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }

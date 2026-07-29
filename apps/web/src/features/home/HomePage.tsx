@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { fetchSession, prepareQuiz } from '../../lib/apiClient.js';
+import { fetchSession } from '../../lib/apiClient.js';
 import type { SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 
@@ -70,20 +70,6 @@ export function HomePage() {
     }
   }, [pendingAutoPlayAccountId, isReady, session]);
 
-  async function handlePrepareQuiz() {
-    setIsBusy(true);
-    try {
-      await prepareQuiz();
-      const data = await fetchSession();
-      setSession(data.session ?? null);
-      setStatusMessage('Collected data from all connected players.');
-    } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'Unable to prepare quiz.');
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
   async function handlePlayTrack(account: SpotifyConnectedAccountSummary, trackUri: string | null) {
     if (account.topTrack?.uri === currentTrackUri) {
       console.log("Track is already playing."); return;
@@ -111,14 +97,11 @@ export function HomePage() {
           <button type="button" className="secondary-button" onClick={handleConnectNextPlayer} disabled={isBusy}>
             Connect next player
           </button>
-          <button type="button" className="primary-button" onClick={handlePrepareQuiz} disabled={isBusy || !session?.authenticated}>
-            Prepare quiz
-          </button>
           <button
             type="button"
             className="primary-button"
             onClick={handleStartQuiz}
-            disabled={isBusy || session?.quizPreparation?.status !== 'ready'}
+            disabled={isBusy || (session?.connectedAccounts.length ?? 0) < 2}
           >
             Start quiz
           </button>
@@ -154,13 +137,6 @@ export function HomePage() {
           })}
         </div>
       )}
-
-      {session?.quizPreparation ? (
-        <div className="prep-state">
-          <p className="muted">Quiz prep status: {session.quizPreparation.status}</p>
-          <p className="muted">Collected player data: {session.quizPreparation.players.length}</p>
-        </div>
-      ) : null}
     </section>
   );
 }

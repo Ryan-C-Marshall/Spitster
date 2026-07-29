@@ -1,33 +1,35 @@
-export type QuizKind = 'top-tracks' | 'playlists' | 'library' | 'friends';
+import type { SpotifyTrackSummary } from './spotify.js';
 
-export type QuizQuestionType =
-  | 'track-name'
-  | 'track-artist'
-  | 'playlist-owner'
-  | 'artist-genres'
-  | 'release-year';
+/**
+ * Every question type gets a literal here. Adding a new question type means:
+ *   1. Add its string literal to this union
+ *   2. Add its interface below, extending BaseQuestion
+ *   3. Add it to the Question union
+ *   4. Implement a generator (apps/api/src/services/quiz/questionTypes) and
+ *      a display component (apps/web/src/features/quiz/questionTypes)
+ */
+export type QuestionType = 'whose-top-track';
 
-export interface QuizPlayerInput {
-  displayName: string;
-  spotifyAccountId?: string;
-  spotifyUserId?: string;
-  spotifyUsername?: string;
-  accessTokenSource: 'session' | 'public';
-}
-
-export interface QuizRound {
+export interface BaseQuestion {
   id: string;
-  prompt: string;
-  answer: string;
-  distractors: string[];
-  questionType: QuizQuestionType;
-  sourceKind: QuizKind;
+  type: QuestionType;
 }
 
-export interface QuizSessionSnapshot {
-  quizKind: QuizKind;
-  players: QuizPlayerInput[];
-  rounds: QuizRound[];
-  score: number;
-  currentRoundIndex: number;
+export interface QuestionPlayerOption {
+  spotifyUserId: string;
+  displayName: string | null;
 }
+
+/**
+ * "Whose top track is this?" — plays a track pulled from one connected
+ * player's top tracks; every connected player is shown as a possible answer.
+ */
+export interface WhoseTopTrackQuestion extends BaseQuestion {
+  type: 'whose-top-track';
+  track: SpotifyTrackSummary;
+  options: QuestionPlayerOption[];
+  correctSpotifyUserId: string;
+}
+
+// | NextQuestionType, as more question types are added.
+export type Question = WhoseTopTrackQuestion;

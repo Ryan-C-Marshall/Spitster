@@ -1,4 +1,4 @@
-import type { SpotifySessionSummary } from '@spitster/shared';
+import type { Question, QuestionType, SpotifySessionSummary } from '@spitster/shared';
 
 export async function fetchSession() {
   const response = await fetch('/auth/session', {
@@ -16,15 +16,19 @@ export async function fetchSession() {
   };
 }
 
-export async function prepareQuiz() {
-  const response = await fetch('/quiz/prepare', {
+export async function fetchQuestion(type?: QuestionType): Promise<Question> {
+  const response = await fetch('/quiz/question', {
     method: 'POST',
     credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type }),
   });
 
   if (!response.ok) {
-    throw new Error('Unable to prepare quiz');
+    const payload = await response.json().catch(() => null);
+    throw new Error(payload?.error ?? 'Unable to fetch a question');
   }
 
-  return response.json() as Promise<unknown>;
+  const payload = (await response.json()) as { question: Question };
+  return payload.question;
 }

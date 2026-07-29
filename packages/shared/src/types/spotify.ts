@@ -53,24 +53,16 @@ export interface SpotifyPlayerCollectedData {
   topTracks: SpotifyTrackSummary[];
 }
 
-export interface SpotifyQuizPreparationState {
-  status: 'idle' | 'collecting' | 'ready' | 'failed';
-  players: SpotifyPlayerCollectedData[];
-  errorMessage: string | null;
-}
-
 export interface SpotifySessionState {
   pendingAuths: Record<string, SpotifyPendingAuth>;
   connectedAccounts: Record<string, SpotifyConnectedAccount>;
   hostSpotifyUserId: string | null;
-  quizPreparation: SpotifyQuizPreparationState | null;
 }
 
 export interface SpotifySessionSummary {
   authenticated: boolean;
   connectedAccounts: SpotifyConnectedAccountSummary[];
   hostSpotifyUserId: string | null;
-  quizPreparation: SpotifyQuizPreparationState | null;
 }
 
 export interface SpotifyTokenResponse {

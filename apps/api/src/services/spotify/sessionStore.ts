@@ -5,6 +5,5 @@ export function createEmptySpotifySessionState(): SpotifySessionState {
     pendingAuths: {},
     connectedAccounts: {},
     hostSpotifyUserId: null,
-    quizPreparation: null,
   };
 }
