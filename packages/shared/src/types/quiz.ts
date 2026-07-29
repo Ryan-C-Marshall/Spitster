@@ -28,7 +28,7 @@ export interface WhoseTopTrackQuestion extends BaseQuestion {
   type: 'whose-top-track';
   track: SpotifyTrackSummary;
   options: QuestionPlayerOption[];
-  correctSpotifyUserId: string;
+  correctSpotifyUserIds: string[];
 }
 
 // | NextQuestionType, as more question types are added.

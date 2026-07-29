@@ -11,13 +11,9 @@ export function WhoseTopTrackQuestionView({
     <div className="question-card">
       <h2>Whose top track is this?</h2>
 
-      <p className="track-info">
-        {question.track.name} — {question.track.artists.map((artist) => artist.name).join(', ')}
-      </p>
-
       <ul className="option-list">
         {question.options.map((option) => {
-          const isCorrect = revealed && option.spotifyUserId === question.correctSpotifyUserId;
+          const isCorrect = revealed && question.correctSpotifyUserIds.includes(option.spotifyUserId);
 
           return (
             <li key={option.spotifyUserId} className={`option${isCorrect ? ' option-correct' : ''}`}>
@@ -26,8 +22,6 @@ export function WhoseTopTrackQuestionView({
           );
         })}
       </ul>
-
-      <p className="muted">{revealed ? 'Answer revealed above.' : 'Guessing time...'}</p>
     </div>
   );
 }

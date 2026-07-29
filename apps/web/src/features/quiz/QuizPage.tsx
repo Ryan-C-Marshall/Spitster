@@ -6,11 +6,12 @@ import type { Question } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { QuestionView } from './QuestionView.js';
 
-const REVEAL_DELAY_MS = 10_000;
+const REVEAL_DELAY_MS = 20_000;
 
 export function QuizPage() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [timerStarted, setTimerStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const { play } = usePlayer();
@@ -18,6 +19,7 @@ export function QuizPage() {
   async function loadQuestion() {
     setIsLoading(true);
     setRevealed(false);
+    setTimerStarted(false);
     setStatusMessage(null);
 
     try {
@@ -46,13 +48,29 @@ export function QuizPage() {
     }
   }, [question]);
 
-  // Reveal the answer automatically after a fixed delay.
+  // The timer doesn't start automatically — the first player to know the
+  // answer presses space, which gives everyone else a fixed window to
+  // answer before it's revealed.
   useEffect(() => {
-    if (!question) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.code !== 'Space') return;
+      if (!question || revealed || timerStarted) return;
+
+      event.preventDefault();
+      setTimerStarted(true);
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [question, revealed, timerStarted]);
+
+  // Reveal the answer automatically once the timer runs out.
+  useEffect(() => {
+    if (!question || !timerStarted || revealed) return;
 
     const timer = setTimeout(() => setRevealed(true), REVEAL_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [question]);
+  }, [question, timerStarted, revealed]);
 
   return (
     <section className="panel">
@@ -77,12 +95,24 @@ export function QuizPage() {
       {!isLoading && question ? <QuestionView question={question} revealed={revealed} /> : null}
 
       {!isLoading && question ? (
-        <div className="timer-track">
-          <div
-            key={question.id}
-            className="timer-fill"
-            style={{ animationDuration: `${REVEAL_DELAY_MS}ms` }}
-          />
+        <div className="timer-row">
+          <div className="timer-track">
+            {timerStarted && !revealed ? (
+              <div
+                key={question.id}
+                className="timer-fill"
+                style={{ animationDuration: `${REVEAL_DELAY_MS}ms` }}
+              />
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setRevealed(true)}
+            disabled={revealed}
+          >
+            Reveal answer
+          </button>
         </div>
       ) : null}
     </section>

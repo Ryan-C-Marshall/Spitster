@@ -19,6 +19,14 @@ export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = 
     const correctPlayer = pickRandom(eligiblePlayers);
     const track = pickRandom(correctPlayer.topTracks);
 
+    // The same track can appear in more than one player's top tracks (e.g.
+    // a couple who both have a favorite song in their top 50) — anyone who
+    // has it should count as correct, not just whichever player it was
+    // originally drawn from.
+    const correctSpotifyUserIds = eligiblePlayers
+      .filter((player) => player.topTracks.some((topTrack) => topTrack.id === track.id))
+      .map((player) => player.spotifyUserId);
+
     return {
       id: randomUUID(),
       type: 'whose-top-track',
@@ -27,7 +35,7 @@ export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = 
         spotifyUserId: player.spotifyUserId,
         displayName: player.displayName,
       })),
-      correctSpotifyUserId: correctPlayer.spotifyUserId,
+      correctSpotifyUserIds,
     };
   },
 };
