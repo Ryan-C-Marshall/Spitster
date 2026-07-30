@@ -1,5 +1,7 @@
 import type { WhoseTopTrackQuestion } from '@spitster/shared';
 
+const musicPlayingGifUrl = new URL('../../../resources/images/music-playing.gif', import.meta.url).href;
+
 export function WhoseTopTrackQuestionView({
   question,
   revealed,
@@ -9,14 +11,21 @@ export function WhoseTopTrackQuestionView({
 }) {
   return (
     <div className="question-card">
-      <h2>Whose top track is this?</h2>
+      <div className="question-header">
+        <h2>Whose top track is this?</h2>
 
-      <div className="lobby-card playing track-reveal-card">
-        {revealed ? (
-          <p className="track-info">
-            {question.track.name} — {question.track.artists.map((artist) => artist.name).join(', ')}
-          </p>
-        ) : null}
+        <div className="lobby-card playing track-reveal-card">
+          {revealed ? (
+            <div className="track-reveal-content">
+              <h3 className="track-reveal-title">{question.track.name}</h3>
+              <p className="track-reveal-artist">
+                {question.track.artists.map((artist) => artist.name).join(', ')}
+              </p>
+            </div>
+          ) : (
+            <img className="track-reveal-gif" src={musicPlayingGifUrl} alt="" aria-hidden="true" />
+          )}
+        </div>
       </div>
 
       <ul className="option-list">

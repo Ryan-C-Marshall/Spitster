@@ -8,6 +8,17 @@ import { QuestionView } from './QuestionView.js';
 
 const DEFAULT_REVEAL_DELAY_MS = 20_000;
 
+// Override the reveal delay for specific question types here; anything not
+// listed falls back to DEFAULT_REVEAL_DELAY_MS.
+const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
+  'whose-top-track': 7_000,
+};
+
+function getRevealDelayMs(question: Question | null): number {
+  if (!question) return DEFAULT_REVEAL_DELAY_MS;
+  return REVEAL_DELAY_MS_BY_TYPE[question.type] ?? DEFAULT_REVEAL_DELAY_MS;
+}
+
 export function QuizPage() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -77,7 +88,7 @@ export function QuizPage() {
   useEffect(() => {
     if (!question || !timerStarted || revealed) return;
 
-    const timer = setTimeout(() => setRevealed(true), DEFAULT_REVEAL_DELAY_MS);
+    const timer = setTimeout(() => setRevealed(true), getRevealDelayMs(question));
     return () => clearTimeout(timer);
   }, [question, timerStarted, revealed]);
 
@@ -110,7 +121,7 @@ export function QuizPage() {
               <div
                 key={question.id}
                 className="timer-fill"
-                style={{ animationDuration: `${DEFAULT_REVEAL_DELAY_MS}ms` }}
+                style={{ animationDuration: `${getRevealDelayMs(question)}ms` }}
               />
             ) : null}
           </div>
