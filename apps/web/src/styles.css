@@ -145,6 +145,11 @@ button:disabled {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* Make pointer a hand on hover */
+  &:hover {
+    cursor: pointer;
+  }
 }
 
 .lobby-card.host {
@@ -187,6 +192,11 @@ button:disabled {
   to {
     --angle: 360deg;
   }
+}
+
+.track-reveal-card {
+  min-height: 3.5rem;
+  justify-content: center;
 }
 
 .question-card {

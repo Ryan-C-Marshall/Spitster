@@ -1,6 +1,10 @@
 // features/player/PlayerContext.tsx
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SpotifyPlayer } from './SpotifyPlayer';
+
+const LOBBY_VOLUME = 0.25;
+const QUIZ_VOLUME = 1;
 
 interface PlayerContextValue {
   deviceId: string | null;
@@ -15,6 +19,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [currentTrackUri, setCurrentTrackUri] = useState<string | null>(null);
   const playbackErrorTick = useRef(0);
+  const location = useLocation();
+  const volume = location.pathname.startsWith('/quiz') ? QUIZ_VOLUME : LOBBY_VOLUME;
 
   const handlePlaybackError = useCallback(() => {
     playbackErrorTick.current += 1;
@@ -59,7 +65,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   return (
   <PlayerContext.Provider value={{ deviceId, isReady: deviceId !== null, currentTrackUri, play }}>      {children}
-      <SpotifyPlayer onDeviceReady={setDeviceId} onPlaybackError={handlePlaybackError} />
+      <SpotifyPlayer volume={volume} onDeviceReady={setDeviceId} onPlaybackError={handlePlaybackError} />
     </PlayerContext.Provider>
   );
 }

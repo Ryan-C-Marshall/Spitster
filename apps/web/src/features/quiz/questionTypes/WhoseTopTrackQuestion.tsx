@@ -11,6 +11,14 @@ export function WhoseTopTrackQuestionView({
     <div className="question-card">
       <h2>Whose top track is this?</h2>
 
+      <div className="lobby-card playing track-reveal-card">
+        {revealed ? (
+          <p className="track-info">
+            {question.track.name} — {question.track.artists.map((artist) => artist.name).join(', ')}
+          </p>
+        ) : null}
+      </div>
+
       <ul className="option-list">
         {question.options.map((option) => {
           const isCorrect = revealed && question.correctSpotifyUserIds.includes(option.spotifyUserId);

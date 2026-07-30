@@ -19,13 +19,19 @@ async function fetchPlayerAccessToken(): Promise<string> {
 }
 
 interface SpotifyPlayerProps {
+  volume: number;
   onDeviceReady?: (deviceId: string) => void;
   onPlaybackError?: (message: string) => void;
 }
 
-export function SpotifyPlayer({ onDeviceReady, onPlaybackError }: SpotifyPlayerProps) {
+export function SpotifyPlayer({ volume, onDeviceReady, onPlaybackError }: SpotifyPlayerProps) {
   const playerRef = useRef<Spotify.Player | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  // Read via a ref inside the initializer so changing `volume` later doesn't
+  // tear down and recreate the whole player — see the sync effect below for
+  // how volume changes are applied to an already-connected player.
+  const initialVolumeRef = useRef(volume);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,7 +44,7 @@ export function SpotifyPlayer({ onDeviceReady, onPlaybackError }: SpotifyPlayerP
             .then(callback)
             .catch((error) => console.error('Failed to get Spotify access token', error));
         },
-        volume: 0.25,
+        volume: initialVolumeRef.current,
       });
 
       player.addListener('ready', ({ device_id }) => {
@@ -88,6 +94,17 @@ export function SpotifyPlayer({ onDeviceReady, onPlaybackError }: SpotifyPlayerP
       playerRef.current = null;
     };
   }, [onDeviceReady, onPlaybackError]);
+
+  // Whenever the desired volume changes (e.g. navigating between the lobby
+  // and the quiz), push it to the already-connected player. Re-runs once
+  // `status` flips to 'ready' too, in case a change came in before that.
+  useEffect(() => {
+    if (status !== 'ready') return;
+
+    playerRef.current?.setVolume(volume).catch((error) => {
+      console.error('Failed to set Spotify player volume:', error);
+    });
+  }, [volume, status]);
 
   return <div id="spotify-player-anchor" aria-hidden="true" data-status={status} />;
 }
