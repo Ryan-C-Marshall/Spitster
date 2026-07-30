@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
@@ -6,7 +6,7 @@ import type { Question } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { QuestionView } from './QuestionView.js';
 
-const REVEAL_DELAY_MS = 20_000;
+const DEFAULT_REVEAL_DELAY_MS = 20_000;
 
 export function QuizPage() {
   const [question, setQuestion] = useState<Question | null>(null);
@@ -16,7 +16,10 @@ export function QuizPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const { play } = usePlayer();
 
+  const requestIdRef = useRef(0);
+
   async function loadQuestion() {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     setRevealed(false);
     setTimerStarted(false);
@@ -24,12 +27,18 @@ export function QuizPage() {
 
     try {
       const nextQuestion = await fetchQuestion();
+      if (requestId !== requestIdRef.current) {
+        // A newer request has been made, so ignore this one.
+        return;
+      }
       setQuestion(nextQuestion);
     } catch (error) {
       setQuestion(null);
       setStatusMessage(error instanceof Error ? error.message : 'Unable to load a question.');
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -68,7 +77,7 @@ export function QuizPage() {
   useEffect(() => {
     if (!question || !timerStarted || revealed) return;
 
-    const timer = setTimeout(() => setRevealed(true), REVEAL_DELAY_MS);
+    const timer = setTimeout(() => setRevealed(true), DEFAULT_REVEAL_DELAY_MS);
     return () => clearTimeout(timer);
   }, [question, timerStarted, revealed]);
 
@@ -101,7 +110,7 @@ export function QuizPage() {
               <div
                 key={question.id}
                 className="timer-fill"
-                style={{ animationDuration: `${REVEAL_DELAY_MS}ms` }}
+                style={{ animationDuration: `${DEFAULT_REVEAL_DELAY_MS}ms` }}
               />
             ) : null}
           </div>
