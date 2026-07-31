@@ -12,9 +12,15 @@ export function WhoseTopTrackQuestionView({
   return (
     <div className="question-card">
       <div className="question-header">
-        <h2>Whose top track is this?</h2>
+        <div>
+          <h2>Whose top track is this?</h2>
+          <div style={{ height: '0.5rem' }} />
+          <p className="track-reveal-artist">This is in someone's top-200 over the last 6 months</p>
+
+        </div>
 
         <div className="lobby-card playing track-reveal-card">
+
           {revealed ? (
             <div className="track-reveal-content">
               <h3 className="track-reveal-title">{question.track.name}</h3>

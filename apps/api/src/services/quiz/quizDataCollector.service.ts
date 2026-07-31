@@ -15,6 +15,8 @@ export async function collectQuizSourceData(input: {
       await fetchPlayerCollectionData({
         account,
         apiBaseUrl: env.spotifyApiBaseUrl,
+        limit: 2,
+        timeRange: 'medium_term',
       }),
     );
   }

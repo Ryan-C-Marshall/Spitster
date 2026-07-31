@@ -50,9 +50,10 @@ async function fetchTopTrack(spotifySession: SpotifySessionState, spotifyUserId:
     account: spotifySession.connectedAccounts[spotifyUserId],
     apiBaseUrl: getEnv().spotifyApiBaseUrl,
     timeRange: 'short_term',
+    limit: 1,
   });
 
-  console.log('Fetched top tracks for selected Spotify account:', spotifyUserId, 'Top tracks:', topTracks);
+  console.log('Fetched top track for selected Spotify account:', spotifyUserId, 'Top tracks:', topTracks);
 
   return topTracks.length > 0 ? topTracks[0] : null;
 }
@@ -97,6 +98,7 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     console.log('Spotify auth callback initiated. Request query:', request.query);
     const code = typeof request.query.code === 'string' ? request.query.code : null;
     const state = typeof request.query.state === 'string' ? request.query.state : null;
+    const authError = typeof request.query.error === 'string' ? request.query.error : null;
     const pendingAuth = state && request.session.spotify?.pendingAuths[state] ? request.session.spotify.pendingAuths[state] : null;
 
     console.log(
@@ -105,9 +107,25 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
 
         "code": code,
         "state": state,
+        "error": authError,
         "pendingAuth": pendingAuth,
       }
     );
+
+    // The user cancelled the Spotify consent screen (or otherwise denied access).
+    // This isn't a real failure, so just clean up and send them back to the lobby.
+    if (authError) {
+      console.log('Spotify auth callback cancelled by user. Error:', authError);
+
+      if (state && request.session.spotify?.pendingAuths[state]) {
+        delete request.session.spotify.pendingAuths[state];
+      }
+
+      const cancelledUrl = new URL(env.frontendOrigin);
+      cancelledUrl.searchParams.set('auth', 'cancelled');
+      response.redirect(cancelledUrl.toString());
+      return;
+    }
 
     if (!code) {
       response.status(400).json({ error: 'Invalid auth callback. Missing code.' });

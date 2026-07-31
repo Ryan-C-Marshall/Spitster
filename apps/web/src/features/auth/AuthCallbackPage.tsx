@@ -20,9 +20,15 @@ export function AuthCallbackPage() {
         const failedMessage = params.get('message') ?? 'Failed to retrieve that player\'s Spotify account.';
         setMessage(failedMessage);
         navigate(`/${window.location.search}`, { replace: true });
-      } else {
-        setMessage('Waiting for Spotify callback...');
+        return;
       }
+
+      if (auth === 'cancelled') {
+        navigate('/', { replace: true });
+        return;
+      }
+
+      setMessage('Waiting for Spotify callback...');
     };
 
     finishAuth();

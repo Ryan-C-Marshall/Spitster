@@ -13,10 +13,6 @@ export function createApp() {
   const env = getEnv();
   const app = express();
 
-  console.log("Env variables:", {
-    ...env,
-  });
-
   app.use(
     cors({
       origin: env.frontendOrigin,

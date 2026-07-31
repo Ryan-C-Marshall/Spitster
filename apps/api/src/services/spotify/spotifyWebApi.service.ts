@@ -29,9 +29,13 @@ async function fetchJson<T>(url: string, accessToken: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-// Spotify hard-caps this endpoint at 50 items per time_range — there's no
-// pagination past it (offset >= 50 returns an empty list).
-const SPOTIFY_TOP_TRACKS_MAX_LIMIT = 50;
+// Spotify caps this endpoint at 50 items per request, but supports paging
+// further via `offset` — so a caller-requested `limit` beyond 50 is served
+// by making enough successive requests (bumping offset by 50 each time)
+// until we've collected enough tracks or Spotify runs out of ranked tracks
+// for this user (a page returning fewer items than requested means we've
+// hit the end of their list).
+const SPOTIFY_TOP_TRACKS_PAGE_SIZE = 50;
 
 export async function fetchPlayerCollectionData(input: {
   account: SpotifyConnectedAccount;
@@ -43,7 +47,7 @@ export async function fetchPlayerCollectionData(input: {
     account: input.account,
     apiBaseUrl: input.apiBaseUrl,
     timeRange: input.timeRange ?? 'medium_term',
-    limit: input.limit ?? SPOTIFY_TOP_TRACKS_MAX_LIMIT,
+    limit: input.limit ?? SPOTIFY_TOP_TRACKS_PAGE_SIZE,
   });
 
   return {
@@ -60,23 +64,45 @@ export async function fetchUsersTopTracks(input: {
   limit?: number;
 }): Promise<SpotifyTrackSummary[]> {
   const timeRange = input.timeRange ?? 'medium_term';
-  const limit = Math.min(input.limit ?? SPOTIFY_TOP_TRACKS_MAX_LIMIT, SPOTIFY_TOP_TRACKS_MAX_LIMIT);
+  const totalLimit = input.limit ?? SPOTIFY_TOP_TRACKS_PAGE_SIZE;
 
-  const topTracks = await fetchJson<SpotifyTopTracksResponse>(
-    `${input.apiBaseUrl}/me/top/tracks?limit=${limit}&time_range=${timeRange}`,
-    input.account.tokens.accessToken,
-  );
+  const tracks: SpotifyTrackSummary[] = [];
+  let offset = 0;
 
-  return topTracks.items.map((track): SpotifyTrackSummary => ({
-    id: track.id,
-    name: track.name,
-    uri: track.uri,
-    artists: track.artists.map((artist): SpotifyArtistSummary => ({
-      id: artist.id,
-      name: artist.name,
-      uri: artist.uri,
-    })),
-  }));
+  while (tracks.length < totalLimit) {
+    const pageLimit = Math.min(SPOTIFY_TOP_TRACKS_PAGE_SIZE, totalLimit - tracks.length);
+
+    const page = await fetchJson<SpotifyTopTracksResponse>(
+      `${input.apiBaseUrl}/me/top/tracks?limit=${pageLimit}&offset=${offset}&time_range=${timeRange}`,
+      input.account.tokens.accessToken,
+    );
+
+    tracks.push(
+      ...page.items.map((track): SpotifyTrackSummary => ({
+        id: track.id,
+        name: track.name,
+        uri: track.uri,
+        artists: track.artists.map((artist): SpotifyArtistSummary => ({
+          id: artist.id,
+          name: artist.name,
+          uri: artist.uri,
+        })),
+      })),
+    );
+
+    offset += pageLimit;
+
+    // Fewer items than we asked for means we've reached the end of this
+    // user's ranked list — no point paging further.
+    if (page.items.length < pageLimit) {
+      break;
+    }
+  }
+
+  console.log(`Fetched ${tracks.length} top tracks for Spotify user ${input.account.spotifyUserId} (limit requested: ${totalLimit})`);
+  console.log('Top tracks:', tracks);
+
+  return tracks;
 }
 
 
