@@ -1,4 +1,4 @@
-import type { SpotifyArtistSummary, SpotifyConnectedAccount, SpotifyPlayerCollectedData, SpotifyTrackSummary } from '@spitster/shared';
+import type { SpotifyArtistSummary, SpotifyConnectedAccount, SpotifyTrackSummary } from '@spitster/shared';
 
 type SpotifyTrackItemResponse = {
   id: string;
@@ -36,26 +36,6 @@ async function fetchJson<T>(url: string, accessToken: string): Promise<T> {
 // for this user (a page returning fewer items than requested means we've
 // hit the end of their list).
 const SPOTIFY_TOP_TRACKS_PAGE_SIZE = 50;
-
-export async function fetchPlayerCollectionData(input: {
-  account: SpotifyConnectedAccount;
-  apiBaseUrl: string;
-  limit?: number;
-  timeRange?: 'short_term' | 'medium_term' | 'long_term';
-}): Promise<SpotifyPlayerCollectedData> {
-  const topTracks = await fetchUsersTopTracks({
-    account: input.account,
-    apiBaseUrl: input.apiBaseUrl,
-    timeRange: input.timeRange ?? 'medium_term',
-    limit: input.limit ?? SPOTIFY_TOP_TRACKS_PAGE_SIZE,
-  });
-
-  return {
-    spotifyUserId: input.account.spotifyUserId,
-    displayName: input.account.displayName,
-    topTracks,
-  };
-}
 
 export async function fetchUsersTopTracks(input: {
   account: SpotifyConnectedAccount;

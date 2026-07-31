@@ -29,6 +29,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 
 cd "$REPO_ROOT"
 
+pwd
+
 # --- Naming ---------------------------------------------------------------
 PROJECT_NAME="${1:-$(basename "$REPO_ROOT")}"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"

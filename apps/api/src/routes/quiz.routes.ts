@@ -19,9 +19,8 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
   }
 
   try {
-    // Fetched fresh on every question for now; a caching layer can sit in
-    // front of this once there are enough question types to make the
-    // repeated Spotify calls worth avoiding.
+    // Player top-track data is served from an in-memory per-user cache
+    // after the first fetch (see spotifyDataCache.service.ts).
     const collected = await collectQuizSourceData({ accounts });
 
     const requestedType = request.body?.type as QuestionType | undefined;

@@ -2,11 +2,11 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_FILE="$SCRIPT_DIR/tree.txt"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUTPUT_FILE="$ROOT_DIR/tree.txt"
 
 # Ensure we're operating from the project root (where the script lives)
-cd "$SCRIPT_DIR"
+cd "$ROOT_DIR"
 
 # Generate the tree, excluding all node_modules directories
 tree -a -I 'node_modules' > "$OUTPUT_FILE"
