@@ -111,6 +111,7 @@
 │   │   ├── 18
 │   │   │   └── ca38905294d232d2b0310a46d63caeffa5c99e
 │   │   ├── 19
+│   │   │   ├── 0b0612865c117c8015ae3bec10bec102bf6026
 │   │   │   └── 0c4f588ec31eef83721d996717482f0ba04fd7
 │   │   ├── 1b
 │   │   │   └── fec325c3fc625e4adfe3ffc9a1f16b25c2783c
@@ -143,6 +144,7 @@
 │   │   │   └── 9f96978b806c15eaea04e7bd7e347555a22853
 │   │   ├── 24
 │   │   │   ├── 488db799b5a5bf52d0b28a187615ceb698357c
+│   │   │   ├── 8d5446ce1634eef6c7f240b51e5ef4f08c410b
 │   │   │   ├── 8d624670dcaa7f543f13db8de9b40be76e6da0
 │   │   │   └── d50a84fd7935f526fe1aa1561946ab14c44e44
 │   │   ├── 25
@@ -151,6 +153,8 @@
 │   │   │   ├── 62229ee300a0d69c219f2ec3c75f6af717aeff
 │   │   │   ├── bde459d187503de65feb5c29c55561eba00a92
 │   │   │   └── c2048cb55c74e5c41bbf621bdaab4fa58b6b17
+│   │   ├── 26
+│   │   │   └── 7d422344f2d63cee56d60d247a5056381bbfa9
 │   │   ├── 27
 │   │   │   ├── f308921f6452078ea425f31f1c7e116d01f984
 │   │   │   └── f3ef5e1ec032035b12fe04a0584cbd3151895c
@@ -184,7 +188,10 @@
 │   │   │   ├── 36e17c55808f18a6d0c1bd4ea87f974533b30b
 │   │   │   ├── a1089f6e20421ce711e61fbf9fe98cd3667fa9
 │   │   │   └── c30b2cbee095fdde528eab368cc3e519e44eb2
+│   │   ├── 31
+│   │   │   └── a1858588ebc1bd71baefae75bedea17a9b9eb9
 │   │   ├── 32
+│   │   │   ├── 1a108361434848015d8aa9b8929a992cf9039a
 │   │   │   └── e3ff0e3b0fc306c21b2123b6b19036df23846b
 │   │   ├── 33
 │   │   │   ├── 77554c7d846a61775374e14b2527b647c66ec3
@@ -199,6 +206,8 @@
 │   │   │   ├── 30d1815f9cd091daa1d769198ae7af8e133206
 │   │   │   ├── 8843a3b79cd7a9ba65333f276061df6595a77d
 │   │   │   └── eec4c2960296fc509ce2261eaa466bf20f6d10
+│   │   ├── 36
+│   │   │   └── 19f812569c2a1df319810eacf6137dbcde0737
 │   │   ├── 37
 │   │   │   └── 3c7d9ca0da62b456ad22e9fd1cadf668366981
 │   │   ├── 38
@@ -245,6 +254,7 @@
 │   │   │   └── f5faaaf5f139c707e338e7e89e51606e9e0ace
 │   │   ├── 40
 │   │   │   ├── 0384a42f5f7148de1ba1b7bb41e98c9d5723f3
+│   │   │   ├── 0d11c6d91a5387c4ebcff8ad1f494fe1fa074d
 │   │   │   └── 2989f0a7cc49ecbed430405715489403db6c64
 │   │   ├── 41
 │   │   │   ├── 2a2c72bb8086c75831e2796b4cdbe96f33c46e
@@ -284,7 +294,8 @@
 │   │   │   ├── 3da1d44be749c9aabb2062565c2cde26766a6f
 │   │   │   └── 3e896d96cac7003a8bab9ffa1b5eed68f6e8f0
 │   │   ├── 4d
-│   │   │   └── 2945ce9274efc90187689d3f25f3350ff28aa0
+│   │   │   ├── 2945ce9274efc90187689d3f25f3350ff28aa0
+│   │   │   └── 3e1d09fea20bc61bb3d006b373cc90ba8ac94c
 │   │   ├── 4e
 │   │   │   ├── 5e29827d40995fff7fbe5002db0aa606c81820
 │   │   │   ├── 74f43f74c8fb2945229db7b362e8bf5e56e81e
@@ -354,6 +365,7 @@
 │   │   │   └── 98d4897ffb029c3fbd4bfa3d8f864dca62ef65
 │   │   ├── 66
 │   │   │   ├── 19b0be4d4eacc5759fc760645ddf6374d7bc1e
+│   │   │   ├── 2ff11215348f504a743811648ea1c3f273ed9a
 │   │   │   ├── 60b229f4814e0ad20b2df5d3def4fdb1928416
 │   │   │   └── cea853bfea4c8409404879f3c880ea6c0b4ae8
 │   │   ├── 67
@@ -361,10 +373,12 @@
 │   │   │   ├── 789e3c6f69ab4f400db82787247b3e68f73bae
 │   │   │   └── a8a6b0180249bf88b97674b4bf697efad2e1e7
 │   │   ├── 68
+│   │   │   ├── 1a30e96ad1838527d4f96aa261284d567b6afd
 │   │   │   ├── 1c35e048f44a4a67569a67146a5ec1728dc4aa
 │   │   │   └── 47a8841eb8eab8990b7c1eed7cf89912505209
 │   │   ├── 69
 │   │   │   ├── 5754305103c6ed87855653e268c265c52d5a51
+│   │   │   ├── 6fd74c4464eb3f76ffea07503d2a2a59995b03
 │   │   │   └── cf19aff5fa40ce3882b09b473aa2121dd6e955
 │   │   ├── 6a
 │   │   │   ├── b55e2b4b933cd556f623acd312b566362a9bd2
@@ -372,6 +386,7 @@
 │   │   │   └── e2996f940705ec542697524cab6983355d7403
 │   │   ├── 6b
 │   │   │   ├── 073bc25274820d7ae7abcaf241abf2554cbb72
+│   │   │   ├── 644dffd520c7bc793f4969c7e67890c4b349dd
 │   │   │   ├── 66cb716dfaba0ea1739e2f00db97fc1af69e94
 │   │   │   ├── 765ecf1d32e1ca3cb329398722c37c5b561b22
 │   │   │   ├── c1c6563384be221b91f38a1e2c3c3c0fb65c34
@@ -422,7 +437,8 @@
 │   │   ├── 79
 │   │   │   └── d1c71a517852cfc3087fd5eb8b2475b949b9cc
 │   │   ├── 7a
-│   │   │   └── 2938e483b9b839f2f14f27efc474b82e172f35
+│   │   │   ├── 2938e483b9b839f2f14f27efc474b82e172f35
+│   │   │   └── 44f8e7d7452917958ab8145a137d4efbeea36a
 │   │   ├── 7b
 │   │   │   └── 89375d065e1aff9513ee7fd675624f59256fb2
 │   │   ├── 7c
@@ -455,7 +471,8 @@
 │   │   ├── 85
 │   │   │   └── 856a4c77ff4d18ac7daddd7c9e645c7be4ae04
 │   │   ├── 86
-│   │   │   └── 0d432214a4d3fcd1688aadfb5b842c101d30f8
+│   │   │   ├── 0d432214a4d3fcd1688aadfb5b842c101d30f8
+│   │   │   └── 9473c87e1b7bbe48c1ce9550d7443d17dc4cc1
 │   │   ├── 87
 │   │   │   ├── b034f6f6f407f19d1dc3aaf1d94d1e5218424b
 │   │   │   └── b97adec05136f67589849df0b24b0cb40e8830
@@ -498,6 +515,7 @@
 │   │   ├── 94
 │   │   │   ├── 5c48c59ab7e96109ca0910b0a8ed70fe4c6867
 │   │   │   ├── 6c974fc007a57e67a2565a3a930b9ca1b45814
+│   │   │   ├── 93a209b91860079ffc5a944efd540f46846ca5
 │   │   │   ├── d417c3f3b83c14bf2a128e571e340fd4259c13
 │   │   │   └── dd8ae59d8e54d0b19c889cd0d83bce17b7d7f6
 │   │   ├── 96
@@ -518,7 +536,8 @@
 │   │   │   ├── 4bda122b84425654f31c0c3787ea813bcaa063
 │   │   │   └── 52f5719524cad6999012b2d601d916e600007e
 │   │   ├── 9a
-│   │   │   └── 03f2d231d958292bb6b56936ebfee09f716610
+│   │   │   ├── 03f2d231d958292bb6b56936ebfee09f716610
+│   │   │   └── 8bcd80d0e5d8307906bb5b8c7746d57a063c86
 │   │   ├── 9b
 │   │   │   ├── 1e02b2f9e6de90cb10e402fdd2334a4bc18b26
 │   │   │   ├── 227f4c2758757cd1ab48e73928102af99d93dd
@@ -573,6 +592,7 @@
 │   │   │   ├── 17e8090268b8e7a6111d97346f2a6d4970b73a
 │   │   │   ├── 281f6c4f4ff3a84f439220b6221a340a52559b
 │   │   │   ├── 4a9867851eb53b0bae3c9af605684b8764d42d
+│   │   │   ├── 857c8c3a0de15d9a89f05e7154c41ed566c1b4
 │   │   │   └── d7e7e4f2f911bc85ee4277c3203833ad7016bb
 │   │   ├── ad
 │   │   │   ├── 5f1ef25f2939e4cb72ab9687cf6618115b266a
@@ -651,6 +671,10 @@
 │   │   │   └── 85e2e25b33ec3aea9438d421f8113fac55f3f3
 │   │   ├── c6
 │   │   │   └── bca6969bfa11f34738d80284dc717f485e85e1
+│   │   ├── c7
+│   │   │   └── 910105d36bcc9beb510c9c3ce86ede83cec3ba
+│   │   ├── c8
+│   │   │   └── fe06388948487136cca22c0e271920d7915ce0
 │   │   ├── ca
 │   │   │   ├── 626e1d27ddf2f7cc3755763c646769a97e21d7
 │   │   │   ├── 9fe24026f5c619164e66cd3ec6515baf99b01e
@@ -676,7 +700,9 @@
 │   │   │   └── e99436dbc69b9b79ab30f05f3401f40dffd719
 │   │   ├── d2
 │   │   │   ├── 23665d2ff0935da4ba8ec7a96bd0ade0451e5b
-│   │   │   └── b8044cbff132eb864e78a5de3568c647a0d26e
+│   │   │   ├── 9fd92ec22216731c92d584230d0e300da21001
+│   │   │   ├── b8044cbff132eb864e78a5de3568c647a0d26e
+│   │   │   └── b9070c8634010a7da63cc47c9fb7857531c828
 │   │   ├── d3
 │   │   │   ├── 3ca826d7b7313d8c89dc0db4cfeda539eae703
 │   │   │   ├── b1a1840281b6b812450e8ad1ac8ad444a41fae
@@ -724,6 +750,7 @@
 │   │   ├── e4
 │   │   │   ├── 3e9eeda457c629eea8b2f29986711b747bc564
 │   │   │   ├── 4ae639165dfa51d73931f1f7b87f9fc8395ed0
+│   │   │   ├── 947b444b3a11c26809d16152bdd46c39981753
 │   │   │   └── d092909c7aba399e65d88588ea7cc402536057
 │   │   ├── e5
 │   │   │   └── 19e31ec6bbf912074547abf64bb8ee9deb108b
@@ -742,6 +769,7 @@
 │   │   ├── e8
 │   │   │   ├── 4eb6841be6cbc32938a2ef5eb4f20ba3a00002
 │   │   │   ├── 5cb07c47e60b6d512793282b637a1b677fe787
+│   │   │   ├── 61dd9dd8c513bbed37a1d6903fda01b0ef36b1
 │   │   │   ├── 6e829fbcc3aa1c98693cffe0e20ed0b5ac49a5
 │   │   │   └── de330a55ba4f7d3230b8cf88833439570136f9
 │   │   ├── e9
@@ -752,7 +780,8 @@
 │   │   │   ├── 7e967e6dba316c81b4eaf462c54063cbbcde7c
 │   │   │   ├── 975266c6031b539dec018e2a19d1c076fed988
 │   │   │   ├── c9d33393128d7de81b5839a825db4a7a116b2d
-│   │   │   └── d546ec45004976767c069fbac776b30ae274f3
+│   │   │   ├── d546ec45004976767c069fbac776b30ae274f3
+│   │   │   └── d6d1e21960e809787d2a1d2dc472fee60b51fa
 │   │   ├── eb
 │   │   │   ├── 7079c16854e5712e4053c86e1105a5a5626e2c
 │   │   │   ├── b83366b2e5ba5df49291fb24469f85d2b00296
@@ -791,7 +820,8 @@
 │   │   ├── f4
 │   │   │   ├── 48fd891d95a0445236649ca202d3412439dd9c
 │   │   │   ├── 77f66564ac4cd1127611ef043aeefe3647c756
-│   │   │   └── ab103d0ad8409f24dcc96641970d6ff5df92dd
+│   │   │   ├── ab103d0ad8409f24dcc96641970d6ff5df92dd
+│   │   │   └── f2e9c4f61e28f790e4493ae68040bf55d18e63
 │   │   ├── f5
 │   │   │   ├── 1b0667d3b26a0ae4a7f4a3b1329b897b424000
 │   │   │   ├── 4159529bbac835f6a8a089bf73e374badcd2e7
@@ -817,7 +847,8 @@
 │   │   │   └── f83f7f04c1605a377496b7e8cb4ca22c7a1fa3
 │   │   ├── fd
 │   │   │   ├── 0df273865de8ffec7cb9fde2ab41d4cdf721c0
-│   │   │   └── 18b13ba17ed9defd2cb2bcf2a96cfe6658fa2b
+│   │   │   ├── 18b13ba17ed9defd2cb2bcf2a96cfe6658fa2b
+│   │   │   └── e8c3bf72fe4f0686c1ac3750aa2bc0db105e50
 │   │   ├── fe
 │   │   │   └── 419dcb6336daaaaa7f9a62d67a78a431b27ea2
 │   │   ├── ff
@@ -902,6 +933,7 @@
 │   │   │   ├── services
 │   │   │   │   ├── quiz
 │   │   │   │   │   ├── questionTypes
+│   │   │   │   │   │   ├── artistRank.ts
 │   │   │   │   │   │   ├── guessThePlaylist.ts
 │   │   │   │   │   │   └── whoseTopTrack.ts
 │   │   │   │   │   └── quizGenerator.service.ts
@@ -965,6 +997,7 @@
 │       │   │   │   └── SpotifyPlayer.tsx
 │       │   │   └── quiz
 │       │   │       ├── questionTypes
+│       │   │       │   ├── ArtistRankQuestion.tsx
 │       │   │       │   ├── GuessThePlaylistQuestion.tsx
 │       │   │       │   └── WhoseTopTrackQuestion.tsx
 │       │   │       ├── QuestionView.tsx
@@ -1035,4 +1068,4 @@
 ├── tsconfig.base.json
 └── tsconfig.json
 
-296 directories, 740 files
+301 directories, 768 files

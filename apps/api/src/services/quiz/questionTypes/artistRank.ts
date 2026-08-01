@@ -48,6 +48,9 @@ async function fetchTopArtistsForAccount(account: SpotifyConnectedAccount): Prom
       }),
   });
 
+  console.log(`Fetched top artists for ${account.displayName ?? account.spotifyUserId}: ${topArtists.length} artists`);
+  console.log(`Top artists: ${topArtists.map((artist) => artist.name).join(', ')}`);
+
   return {
     spotifyUserId: account.spotifyUserId,
     displayName: account.displayName,
@@ -98,6 +101,8 @@ export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
       }
     }
 
+    console.log("Correct candidates for 'artist-rank' question:", correctCandidates.map((artist) => artist.name).join(', '));
+
     if (correctCandidates.length === 0) {
       return null;
     }
@@ -110,12 +115,24 @@ export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
       rank: ranksByPlayer.get(player.spotifyUserId)?.get(correctArtist.id) ?? null,
     }));
 
-    const decoyPool = [...artistPool.values()].filter((artist) => artist.id !== correctArtist.id);
-    if (decoyPool.length < DECOY_COUNT) {
+    // Requirement: at least one decoy must be an artist shared by 2+ players.
+    const sharedDecoyPool = correctCandidates.filter((artist) => artist.id !== correctArtist.id);
+
+    const guaranteedDecoys: SpotifyArtistSummary[] = [];
+    if (sharedDecoyPool.length > 0) {
+      guaranteedDecoys.push(pickRandom(sharedDecoyPool));
+    }
+
+    const remainingPool = [...artistPool.values()].filter(
+      (artist) => artist.id !== correctArtist.id && !guaranteedDecoys.some((d) => d.id === artist.id),
+    );
+
+    const remainingDecoyCount = DECOY_COUNT - guaranteedDecoys.length;
+    if (remainingPool.length < remainingDecoyCount) {
       return null;
     }
 
-    const decoys = pickRandomDistinct(decoyPool, DECOY_COUNT);
+    const decoys = [...guaranteedDecoys, ...pickRandomDistinct(remainingPool, remainingDecoyCount)];
 
     const options: ArtistRankOption[] = shuffle([
       toArtistOption(correctArtist),

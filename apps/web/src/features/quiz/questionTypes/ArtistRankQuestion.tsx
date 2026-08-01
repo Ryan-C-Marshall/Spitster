@@ -1,5 +1,13 @@
 import type { ArtistRankQuestion } from '@spitster/shared';
 
+const MAX_RANK = 200;
+
+function rankFillPercent(rank: number | null): number {
+  if (rank === null) return 0;
+  const clamped = Math.min(Math.max(rank, 1), MAX_RANK);
+  return ((MAX_RANK - clamped + 1) / MAX_RANK) * 100;
+}
+
 export function ArtistRankQuestionView({
   question,
   revealed,
@@ -12,17 +20,20 @@ export function ArtistRankQuestionView({
       <div>
         <h2>Guess the artist</h2>
         <p className="track-reveal-artist">
-          One artist, ranked in everyone's top 200 (medium term). Who is it?
+          One artist is ranked in each player's top 200 artists from the last 6 months according to:
         </p>
       </div>
 
-      <ul className="option-list">
+      <ul className="rank-list">
         {question.playerRanks.map((playerRank) => (
-          <li key={playerRank.spotifyUserId} className="option">
-            <p className="option-title">{playerRank.displayName ?? playerRank.spotifyUserId}</p>
-            <p className="option-subtitle">
+          <li key={playerRank.spotifyUserId} className="rank-row">
+            <span className="rank-name">{playerRank.displayName ?? playerRank.spotifyUserId}</span>
+            <span className="rank-value">
               {playerRank.rank !== null ? `#${playerRank.rank}` : 'Unranked'}
-            </p>
+            </span>
+            <span className="rank-bar-track">
+              <span className="rank-bar-fill" style={{ width: `${rankFillPercent(playerRank.rank)}%` }} />
+            </span>
           </li>
         ))}
       </ul>

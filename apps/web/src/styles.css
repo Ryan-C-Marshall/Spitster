@@ -354,3 +354,48 @@ button:disabled {
   margin: 0.25rem 0 0.5rem;
   background: linear-gradient(to right, transparent, #8dd8ff, transparent);
 }
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rank-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3rem minmax(60px, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rank-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: rgba(245, 247, 251, 0.7);
+}
+
+.rank-bar-track {
+  display: flex; /* was missing an explicit display, but flex/block both work */
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rank-bar-fill {
+  display: block;   /* <-- the fix: span defaults to inline, which ignores width */
+  height: 100%;
+  border-radius: 999px;
+  background: #8dd8ff;
+}

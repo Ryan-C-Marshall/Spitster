@@ -18,6 +18,8 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
     return;
   }
 
+  console.log("Generating ", request.body?.type ? `a ${request.body.type} question` : 'a random question', `for ${accounts.length} players`);
+
   try {
     await ensureFreshTokens(accounts);
 
