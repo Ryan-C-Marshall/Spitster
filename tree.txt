@@ -106,7 +106,8 @@
 │   │   │   ├── 902a6fd46a6da8c9357c84bdebba2a4ff1bb3d
 │   │   │   └── dcdcc0095bbaf6dad3f61e8f851f2dd9ba276c
 │   │   ├── 17
-│   │   │   └── a03ddaf3f6162f151ff4d63aedffe48ea3201d
+│   │   │   ├── a03ddaf3f6162f151ff4d63aedffe48ea3201d
+│   │   │   └── dde2d9e92af2f628b8de133a05dc21417d534e
 │   │   ├── 18
 │   │   │   └── ca38905294d232d2b0310a46d63caeffa5c99e
 │   │   ├── 19
@@ -170,6 +171,7 @@
 │   │   │   ├── 4b4fb4d03af163ef9e0f4fc577d339d1c0d56d
 │   │   │   ├── 850696de509b84c1a6b65037ae3ac679227c43
 │   │   │   ├── 8764bce92c4fe2f1498206edc3c00d2a5b1547
+│   │   │   ├── 957a796d683b503962bc1f717f1045af471ff3
 │   │   │   └── cd34a65a713a4ed17b5dd3423ae58c04ccf27e
 │   │   ├── 2f
 │   │   │   ├── 097d24a3c3df57ba53d8d9509b752393709ceb
@@ -180,6 +182,7 @@
 │   │   │   └── 6035317e0e3ecc941a4d63ae7461d291bd6d40
 │   │   ├── 30
 │   │   │   ├── 36e17c55808f18a6d0c1bd4ea87f974533b30b
+│   │   │   ├── a1089f6e20421ce711e61fbf9fe98cd3667fa9
 │   │   │   └── c30b2cbee095fdde528eab368cc3e519e44eb2
 │   │   ├── 32
 │   │   │   └── e3ff0e3b0fc306c21b2123b6b19036df23846b
@@ -204,6 +207,7 @@
 │   │   │   └── 9d8a57b6f2c4c00409477e5f3925c3811cae7f
 │   │   ├── 39
 │   │   │   ├── 19f6dacb36fb0f37ab1b2e6ce329909e29f98e
+│   │   │   ├── 3d79fe4abad0eb59d561e75983fa13409ac4a7
 │   │   │   ├── 537ca3f4ab411b242dd53db43707ad71f457bf
 │   │   │   ├── 86c5ad3b79bcd2c64574095785208fe0c54656
 │   │   │   ├── 90ba0b649360cbc357e1bacbe01c606e24ee3a
@@ -211,6 +215,7 @@
 │   │   │   ├── b91f3ebffef661d7fd535107db12de80f41940
 │   │   │   └── d476ce527ebfc1d63972855f280f641b9bab73
 │   │   ├── 3a
+│   │   │   ├── 72a6b2d9e28ebe738e44f62f603c66e69ef405
 │   │   │   ├── 93ed97b94718f3f0bc54ae93357ba8c2c3e2e8
 │   │   │   └── adc50360055b39455c2bf42897f1c485034a25
 │   │   ├── 3b
@@ -322,6 +327,7 @@
 │   │   ├── 5e
 │   │   │   ├── 68d050db1f55e5c3ec1f38c81c7300d9f047cb
 │   │   │   ├── 6a79b5b9094627bc51795b3702a99b1b40b926
+│   │   │   ├── 6fa899992340ea88788ab3dc77834f20016ab4
 │   │   │   └── 891bad595359c3a92bacdcb2a44abc90d3cf92
 │   │   ├── 5f
 │   │   │   ├── 0ce5aa23f99a32353986477b436b962d7d23ef
@@ -361,6 +367,7 @@
 │   │   │   ├── 5754305103c6ed87855653e268c265c52d5a51
 │   │   │   └── cf19aff5fa40ce3882b09b473aa2121dd6e955
 │   │   ├── 6a
+│   │   │   ├── b55e2b4b933cd556f623acd312b566362a9bd2
 │   │   │   ├── dd4d80c32c17b136467bc771a62978bd738ebc
 │   │   │   └── e2996f940705ec542697524cab6983355d7403
 │   │   ├── 6b
@@ -392,7 +399,8 @@
 │   │   │   └── d1c98ee10bdb28a9daa39b187b35820d437e8f
 │   │   ├── 71
 │   │   │   ├── 0fad85e1ab8c6b99d4f5ba5ff8febd82d1fd55
-│   │   │   └── 2c745561c645c4660bc74776925602c08235ec
+│   │   │   ├── 2c745561c645c4660bc74776925602c08235ec
+│   │   │   └── 5709532df6784b7a906951af7637b461a42ee1
 │   │   ├── 72
 │   │   │   ├── 5742b6ffc271e33e8e619a6a4c280bee6ee687
 │   │   │   ├── bad36496ecdc3fabcbc0efee090855d7fc752e
@@ -532,7 +540,8 @@
 │   │   │   └── bea603a902bdab971a3abe8c0ddabad88f3f33
 │   │   ├── a0
 │   │   │   ├── 04ce8e4d880a7b2ee70c175361b822140fe305
-│   │   │   └── 951cae1cb396dc962432e911e705cc2ba3e356
+│   │   │   ├── 951cae1cb396dc962432e911e705cc2ba3e356
+│   │   │   └── efaee9b63afa2b15585dcae71f87a398d6f4dc
 │   │   ├── a1
 │   │   │   └── aa35c2eaa32bf5dba1e8e8109c3287af25e185
 │   │   ├── a2
@@ -543,6 +552,8 @@
 │   │   ├── a4
 │   │   │   ├── 0b584f558ae5d1829dee1cbc325a781d38f3da
 │   │   │   └── 28273e2958afe85bd59312348072876383c31f
+│   │   ├── a5
+│   │   │   └── 5f3279a20543664ca907a9378dcb0fff41e147
 │   │   ├── a7
 │   │   │   ├── 58c4d7deb77f31b7a13182002370a9b4a54f9d
 │   │   │   ├── b5f78514aa99603f6e1cc07a6ac82737265f36
@@ -668,6 +679,7 @@
 │   │   │   └── b8044cbff132eb864e78a5de3568c647a0d26e
 │   │   ├── d3
 │   │   │   ├── 3ca826d7b7313d8c89dc0db4cfeda539eae703
+│   │   │   ├── b1a1840281b6b812450e8ad1ac8ad444a41fae
 │   │   │   ├── bbce92f7a3c7eec1c0b12de2d6bc85040f0c13
 │   │   │   ├── c3824c046dcf434234564dbbc23cfb6f3ec6cd
 │   │   │   └── c3c11e84066567b08486ed20dc8005b27bd662
@@ -778,7 +790,8 @@
 │   │   │   └── e7c2214be6aaecd6b74639bf4978b1d2f41cf6
 │   │   ├── f4
 │   │   │   ├── 48fd891d95a0445236649ca202d3412439dd9c
-│   │   │   └── 77f66564ac4cd1127611ef043aeefe3647c756
+│   │   │   ├── 77f66564ac4cd1127611ef043aeefe3647c756
+│   │   │   └── ab103d0ad8409f24dcc96641970d6ff5df92dd
 │   │   ├── f5
 │   │   │   ├── 1b0667d3b26a0ae4a7f4a3b1329b897b424000
 │   │   │   ├── 4159529bbac835f6a8a089bf73e374badcd2e7
@@ -896,7 +909,8 @@
 │   │   │   │       ├── .DS_Store
 │   │   │   │       ├── sessionStore.ts
 │   │   │   │       ├── spotifyDataCache.service.ts
-│   │   │   │       └── spotifyWebApi.service.ts
+│   │   │   │       ├── spotifyWebApi.service.ts
+│   │   │   │       └── tokenRefresh.service.ts
 │   │   │   └── types
 │   │   │       └── express-session.d.ts
 │   │   ├── tsconfig.json
@@ -1021,4 +1035,4 @@
 ├── tsconfig.base.json
 └── tsconfig.json
 
-295 directories, 727 files
+296 directories, 740 files

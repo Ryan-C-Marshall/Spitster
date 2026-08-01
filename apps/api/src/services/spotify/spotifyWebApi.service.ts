@@ -84,6 +84,58 @@ export async function fetchUsersTopTracks(input: {
   return tracks;
 }
 
+type SpotifyArtistItemResponse = {
+  id: string;
+  name: string;
+  uri: string;
+};
+
+type SpotifyTopArtistsResponse = {
+  items: SpotifyArtistItemResponse[];
+};
+
+const SPOTIFY_TOP_ARTISTS_PAGE_SIZE = 50;
+
+export async function fetchUsersTopArtists(input: {
+  account: SpotifyConnectedAccount;
+  apiBaseUrl: string;
+  timeRange: 'short_term' | 'medium_term' | 'long_term' | null;
+  limit?: number;
+}): Promise<SpotifyArtistSummary[]> {
+  const timeRange = input.timeRange ?? 'medium_term';
+  const totalLimit = input.limit ?? SPOTIFY_TOP_ARTISTS_PAGE_SIZE;
+
+  const artists: SpotifyArtistSummary[] = [];
+  let offset = 0;
+
+  while (artists.length < totalLimit) {
+    const pageLimit = Math.min(SPOTIFY_TOP_ARTISTS_PAGE_SIZE, totalLimit - artists.length);
+
+    const page = await fetchJson<SpotifyTopArtistsResponse>(
+      `${input.apiBaseUrl}/me/top/artists?limit=${pageLimit}&offset=${offset}&time_range=${timeRange}`,
+      input.account.tokens.accessToken,
+    );
+
+    artists.push(
+      ...page.items.map((artist): SpotifyArtistSummary => ({
+        id: artist.id,
+        name: artist.name,
+        uri: artist.uri,
+      })),
+    );
+
+    offset += pageLimit;
+
+    if (page.items.length < pageLimit) {
+      break;
+    }
+  }
+
+  console.log(`Fetched ${artists.length} top artists for Spotify user ${input.account.spotifyUserId} (limit requested: ${totalLimit})`);
+
+  return artists;
+}
+
 type SpotifyPlaylistItemResponse = {
   id: string;
   name: string;

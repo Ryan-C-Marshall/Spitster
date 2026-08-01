@@ -8,7 +8,7 @@ import type { SpotifyTrackSummary } from './spotify.js';
  *   4. Implement a generator (apps/api/src/services/quiz/questionTypes) and
  *      a display component (apps/web/src/features/quiz/questionTypes)
  */
-export type QuestionType = 'whose-top-track' | 'guess-the-playlist';
+export type QuestionType = 'whose-top-track' | 'guess-the-playlist' | 'artist-rank';
 
 export interface BaseQuestion {
   id: string;
@@ -50,5 +50,31 @@ export interface GuessThePlaylistQuestion extends BaseQuestion {
   correctPlaylistId: string;
 }
 
+export interface ArtistRankOption {
+  artistId: string;
+  name: string;
+  uri: string;
+}
+
+export interface ArtistRankPlayerRank {
+  spotifyUserId: string;
+  displayName: string | null;
+  /** 1-indexed rank in this player's top-200 (medium term); null = not present. */
+  rank: number | null;
+}
+
+/**
+ * "Artist rank reveal" — one artist is the correct answer; every connected
+ * player's rank for that artist (or "unranked") is shown as a clue. Four
+ * artist options are offered, pooled across every connected player's top
+ * 200 artists, with the correct one placed at a random position.
+ */
+export interface ArtistRankQuestion extends BaseQuestion {
+  type: 'artist-rank';
+  playerRanks: ArtistRankPlayerRank[];
+  options: ArtistRankOption[]; // exactly 4, shuffled
+  correctArtistId: string;
+}
+
 // | NextQuestionType, as more question types are added.
-export type Question = WhoseTopTrackQuestion | GuessThePlaylistQuestion;
+export type Question = WhoseTopTrackQuestion | GuessThePlaylistQuestion | ArtistRankQuestion;
