@@ -38,7 +38,6 @@ export function HomePage() {
   }, [navigate, searchParams]);
 
   async function handleConnectNextPlayer() {
-    console.log('Connecting next player...');
     setIsBusy(true);
 
     try {
@@ -55,8 +54,6 @@ export function HomePage() {
   // track, and the player has a device to send it to, start playback.
   useEffect(() => {
     if (!pendingAutoPlayAccountId || !isReady || !session) return;
-
-    console.log('Attempting to auto-play top track for account:', pendingAutoPlayAccountId, 'on device:', isReady ? 'ready' : 'not ready');
 
     const account = session.connectedAccounts.find(
       (candidate) => candidate.spotifyUserId === pendingAutoPlayAccountId,

@@ -53,17 +53,12 @@ async function fetchTopTrack(spotifySession: SpotifySessionState, spotifyUserId:
     limit: 1,
   });
 
-  console.log('Fetched top track for selected Spotify account:', spotifyUserId, 'Top tracks:', topTracks);
-
   return topTracks.length > 0 ? topTracks[0] : null;
 }
 
 authRoutes.get('/login', (request: Request, response: Response) => {
-  console.log('Spotify login initiated. Request session:', request.session);
   const env = getEnv();
-  console.log('Spotify login initiated. Env vars:', {
-    ...env
-  });
+
   if (!env.spotifyClientId || !env.spotifyRedirectUri) {
     response.status(500).json({ error: 'Spotify env vars are not configured' });
     return;
@@ -95,22 +90,10 @@ authRoutes.get('/login', (request: Request, response: Response) => {
 authRoutes.get('/callback', async (request: Request, response: Response, next: NextFunction) => {
   try {
     const env = getEnv();
-    console.log('Spotify auth callback initiated. Request query:', request.query);
     const code = typeof request.query.code === 'string' ? request.query.code : null;
     const state = typeof request.query.state === 'string' ? request.query.state : null;
     const authError = typeof request.query.error === 'string' ? request.query.error : null;
     const pendingAuth = state && request.session.spotify?.pendingAuths[state] ? request.session.spotify.pendingAuths[state] : null;
-
-    console.log(
-      'Spotify auth callback recieved. Vars:'
-      , {
-
-        "code": code,
-        "state": state,
-        "error": authError,
-        "pendingAuth": pendingAuth,
-      }
-    );
 
     // The user cancelled the Spotify consent screen (or otherwise denied access).
     // This isn't a real failure, so just clean up and send them back to the lobby.
@@ -147,8 +130,6 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
       return;
     }
 
-    console.log('Spotify auth callback proceeding with token exchange.');
-
     const tokenResponse = await fetch(env.spotifyTokenUrl, {
       method: 'POST',
       headers: {
@@ -162,8 +143,6 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
         code_verifier: pendingAuth.codeVerifier,
       }),
     });
-
-    console.log('Spotify token exchange response status:', tokenResponse.status);
 
     if (!tokenResponse.ok) {
       response.status(502).json({ error: 'Spotify token exchange failed' });
@@ -199,7 +178,6 @@ authRoutes.get('/callback', async (request: Request, response: Response, next: N
     // First account connected in this session becomes the playback host.
     // Intentionally never overwritten by later logins.
     request.session.spotify.hostSpotifyUserId ??= profile.id;
-    console.log('Connected new account. Host is:', request.session.spotify.hostSpotifyUserId);
 
     const redirectUrl = new URL(env.frontendOrigin);
     redirectUrl.searchParams.set('auth', 'success');

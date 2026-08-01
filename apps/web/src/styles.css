@@ -307,3 +307,24 @@ button:disabled {
     width: 100%;
   }
 }
+
+.song-card-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.song-card {
+  justify-content: flex-start;
+}
+
+.option-title {
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+}
+
+.option-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(245, 247, 251, 0.7);
+}

@@ -8,7 +8,7 @@ import type { SpotifyTrackSummary } from './spotify.js';
  *   4. Implement a generator (apps/api/src/services/quiz/questionTypes) and
  *      a display component (apps/web/src/features/quiz/questionTypes)
  */
-export type QuestionType = 'whose-top-track';
+export type QuestionType = 'whose-top-track' | 'guess-the-playlist';
 
 export interface BaseQuestion {
   id: string;
@@ -31,5 +31,24 @@ export interface WhoseTopTrackQuestion extends BaseQuestion {
   correctSpotifyUserIds: string[];
 }
 
+export interface PlaylistOption {
+  playlistId: string;
+  name: string;
+  ownerSpotifyUserId: string;
+  ownerDisplayName: string | null;
+}
+
+/**
+ * "Guess the playlist" — plays three tracks pulled from one connected
+ * player's owned playlist; four playlists (pooled across every connected
+ * player's own playlists) are shown as possible answers.
+ */
+export interface GuessThePlaylistQuestion extends BaseQuestion {
+  type: 'guess-the-playlist';
+  tracks: SpotifyTrackSummary[]; // exactly 3; tracks[0] autoplays
+  options: PlaylistOption[]; // exactly 4, shuffled
+  correctPlaylistId: string;
+}
+
 // | NextQuestionType, as more question types are added.
-export type Question = WhoseTopTrackQuestion;
+export type Question = WhoseTopTrackQuestion | GuessThePlaylistQuestion;

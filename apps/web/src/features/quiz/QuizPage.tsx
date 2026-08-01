@@ -66,6 +66,12 @@ export function QuizPage() {
         setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
       });
     }
+
+    if (question.type === 'guess-the-playlist') {
+      play(question.tracks[0].uri).catch((error) => {
+        setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
+      });
+    }
   }, [question]);
 
   // The timer doesn't start automatically — the first player to know the

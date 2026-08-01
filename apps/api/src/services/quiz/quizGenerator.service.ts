@@ -1,6 +1,7 @@
 import type { Question, QuestionType, SpotifyConnectedAccount } from '@spitster/shared';
 
 import { whoseTopTrackGenerator } from './questionTypes/whoseTopTrack.js';
+import { guessThePlaylistGenerator } from './questionTypes/guessThePlaylist.js';
 
 /**
  * The contract every question type's generator implements. `generate` is
@@ -18,7 +19,7 @@ export interface QuestionGenerator<T extends Question = Question> {
 
 // Adding a question type: implement a generator in ./questionTypes and
 // register it here. Nothing else in this file needs to change.
-const generators: QuestionGenerator[] = [whoseTopTrackGenerator];
+const generators: QuestionGenerator[] = [whoseTopTrackGenerator, guessThePlaylistGenerator];
 
 export async function generateQuestion(input: {
   accounts: SpotifyConnectedAccount[];

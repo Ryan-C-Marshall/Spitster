@@ -80,7 +80,144 @@ export async function fetchUsersTopTracks(input: {
   }
 
   console.log(`Fetched ${tracks.length} top tracks for Spotify user ${input.account.spotifyUserId} (limit requested: ${totalLimit})`);
-  console.log('Top tracks:', tracks);
+
+  return tracks;
+}
+
+type SpotifyPlaylistItemResponse = {
+  id: string;
+  name: string;
+  owner: {
+    id: string;
+    display_name: string | null;
+  };
+  // Spotify's Feb 2026 API update renamed this field from `tracks` to
+  // `items` (https://developer.spotify.com/documentation/web-api/references/changes/february-2026).
+  items?: {
+    total: number;
+  } | null;
+};
+
+type SpotifyPlaylistsResponse = {
+  items: SpotifyPlaylistItemResponse[];
+};
+
+export interface SpotifyPlaylistSummary {
+  id: string;
+  name: string;
+  ownerId: string;
+  ownerDisplayName: string | null;
+  trackCount: number;
+}
+
+const SPOTIFY_PLAYLISTS_PAGE_SIZE = 50;
+
+// Returns only playlists this account actually owns (not ones they merely
+// follow or collaborate on) — callers shouldn't need to re-check ownership.
+export async function fetchOwnedPlaylists(input: {
+  account: SpotifyConnectedAccount;
+  apiBaseUrl: string;
+  limit?: number;
+}): Promise<SpotifyPlaylistSummary[]> {
+  const totalLimit = input.limit ?? SPOTIFY_PLAYLISTS_PAGE_SIZE;
+  const playlists: SpotifyPlaylistSummary[] = [];
+  let offset = 0;
+
+  while (playlists.length < totalLimit) {
+    const pageLimit = Math.min(SPOTIFY_PLAYLISTS_PAGE_SIZE, totalLimit - playlists.length);
+
+    const page = await fetchJson<SpotifyPlaylistsResponse>(
+      `${input.apiBaseUrl}/me/playlists?limit=${pageLimit}&offset=${offset}`,
+      input.account.tokens.accessToken,
+    );
+
+    for (const item of page.items) {
+      if (!item || !item.owner) continue; // guard against null/malformed entries
+      if (item.owner.id !== input.account.spotifyUserId) continue;
+
+      playlists.push({
+        id: item.id,
+        name: item.name,
+        ownerId: item.owner.id,
+        ownerDisplayName: item.owner.display_name,
+        trackCount: item.items?.total ?? 0,
+      });
+    }
+
+    offset += pageLimit;
+
+    if (page.items.length < pageLimit) {
+      break;
+    }
+  }
+
+  return playlists;
+}
+
+type SpotifyPlaylistTrackItemResponse = {
+  is_local: boolean;
+  // Renamed from `track` to `item` in Spotify's Feb 2026 API update; `track`
+  // is still sent for back-compat but is deprecated, so we read `item`.
+  item: SpotifyTrackItemResponse | null;
+};
+
+type SpotifyPlaylistTracksResponse = {
+  items: SpotifyPlaylistTrackItemResponse[];
+};
+
+const SPOTIFY_PLAYLIST_TRACKS_PAGE_SIZE = 100;
+// Trimmed via `fields` since playlists can be large and we only need enough
+// tracks to sample three from.
+const PLAYLIST_TRACKS_FIELDS = 'items(is_local,item(id,name,uri,artists(id,name,uri)))';
+
+export async function fetchPlaylistTracks(input: {
+  account: SpotifyConnectedAccount;
+  apiBaseUrl: string;
+  playlistId: string;
+  limit?: number;
+}): Promise<SpotifyTrackSummary[]> {
+  const totalLimit = input.limit ?? SPOTIFY_PLAYLIST_TRACKS_PAGE_SIZE;
+  const tracks: SpotifyTrackSummary[] = [];
+  let offset = 0;
+
+  while (tracks.length < totalLimit) {
+    const pageLimit = Math.min(SPOTIFY_PLAYLIST_TRACKS_PAGE_SIZE, totalLimit - tracks.length);
+
+    // `/playlists/{id}/tracks` was removed in Spotify's Feb 2026 API update;
+    // `/playlists/{id}/items` is the replacement. Note it's also now only
+    // accessible for playlists the account owns or collaborates on (403
+    // otherwise) — fine here since callers only pass owned playlist IDs.
+    const page = await fetchJson<SpotifyPlaylistTracksResponse>(
+      `${input.apiBaseUrl}/playlists/${input.playlistId}/items?fields=${encodeURIComponent(
+        PLAYLIST_TRACKS_FIELDS,
+      )}&limit=${pageLimit}&offset=${offset}`,
+      input.account.tokens.accessToken,
+    );
+
+    for (const playlistItem of page.items) {
+      // Local files can't be streamed via the Web Playback SDK, and removed
+      // tracks leave a null `item` behind rather than being omitted — both
+      // get filtered here so nothing downstream has to check for them.
+      if (playlistItem.is_local || !playlistItem.item) continue;
+
+      tracks.push({
+        id: playlistItem.item.id,
+        name: playlistItem.item.name,
+        uri: playlistItem.item.uri,
+        artists: playlistItem.item.artists.map((artist): SpotifyArtistSummary => ({
+          id: artist.id,
+          name: artist.name,
+          uri: artist.uri,
+        })),
+      });
+    }
+
+    offset += pageLimit;
+
+    if (page.items.length < pageLimit) {
+      break;
+    }
+  }
 
   return tracks;
 }
