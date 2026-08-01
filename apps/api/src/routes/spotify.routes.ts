@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { requireSession } from '../middleware/requireSession.js';
 import { playTrack } from '../services/spotify/spotifyWebApi.service.js';
+import { ensureFreshToken, SpotifyReauthRequiredError } from '../services/spotify/tokenRefresh.service.js';
 
 export const spotifyRoutes = Router();
 
@@ -32,6 +33,16 @@ spotifyRoutes.get('/me/player-token', requireSession, async (request, response) 
     return;
   }
 
+  try {
+    await ensureFreshToken(account);
+  } catch (error) {
+    if (error instanceof SpotifyReauthRequiredError) {
+      response.status(409).json({ error: 'Host needs to reconnect their Spotify account' });
+      return;
+    }
+    throw error;
+  }
+
   response.json({ accessToken: account.tokens.accessToken });
 });
 
@@ -49,9 +60,14 @@ spotifyRoutes.post('/me/player/play', requireSession, async (request, response) 
   }
 
   try {
+    await ensureFreshToken(account);
     await playTrack({ account, trackUri, deviceId });
     response.status(204).end();
   } catch (error) {
+    if (error instanceof SpotifyReauthRequiredError) {
+      response.status(409).json({ error: 'Host needs to reconnect their Spotify account' });
+      return;
+    }
     console.error('Error starting playback:', error);
     response.status(502).json({ error: error instanceof Error ? error.message : 'Failed to start playback' });
   }

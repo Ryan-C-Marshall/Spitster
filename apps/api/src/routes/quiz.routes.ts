@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { requireSession } from '../middleware/requireSession.js';
 import { generateQuestion } from '../services/quiz/quizGenerator.service.js';
 import type { QuestionType } from '@spitster/shared';
+import { ensureFreshTokens, SpotifyReauthRequiredError } from '../services/spotify/tokenRefresh.service.js';
 
 export const quizRoutes = Router();
 
@@ -18,6 +19,8 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
   }
 
   try {
+    await ensureFreshTokens(accounts);
+
     // Each candidate generator fetches only the Spotify data it needs (via
     // an in-memory per-user cache — see spotifyDataCache.service.ts), and
     // only once it's actually being attempted.
@@ -31,6 +34,11 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
 
     response.json({ question });
   } catch (error) {
+    if (error instanceof SpotifyReauthRequiredError) {
+      response.status(409).json({ error: 'One or more players need to reconnect their Spotify account' });
+      return;
+    }
+
     console.error('Failed to generate question:', error);
     response.status(502).json({ error: 'Failed to fetch data from Spotify' });
   }
