@@ -1,11 +1,48 @@
 import { randomUUID } from 'node:crypto';
 
-import type { SpotifyTrackSummary, WhoseTopTrackQuestion } from '@spitster/shared';
+import type { SpotifyConnectedAccount, SpotifyTrackSummary, WhoseTopTrackQuestion } from '@spitster/shared';
 
+import { getEnv } from '../../../config/env.js';
+import { fetchUsersTopTracks } from '../../spotify/spotifyWebApi.service.js';
+import { getOrFetchSpotifyData } from '../../spotify/spotifyDataCache.service.js';
 import type { QuestionGenerator } from '../quizGenerator.service.js';
 
 // Need at least two players so there's more than one possible answer.
 const MIN_PLAYERS = 2;
+
+const TOP_TRACKS_LIMIT = 200;
+const TOP_TRACKS_TIME_RANGE = 'medium_term' as const;
+
+// Local to this generator for now — pull out into a shared fetcher module
+// if a second question type ends up needing top tracks too.
+interface PlayerTopTracks {
+  spotifyUserId: string;
+  displayName: string | null;
+  topTracks: SpotifyTrackSummary[];
+}
+
+async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promise<PlayerTopTracks> {
+  const env = getEnv();
+
+  const topTracks = await getOrFetchSpotifyData({
+    spotifyUserId: account.spotifyUserId,
+    dataKind: 'topTracks',
+    params: { timeRange: TOP_TRACKS_TIME_RANGE, limit: TOP_TRACKS_LIMIT },
+    fetcher: () =>
+      fetchUsersTopTracks({
+        account,
+        apiBaseUrl: env.spotifyApiBaseUrl,
+        limit: TOP_TRACKS_LIMIT,
+        timeRange: TOP_TRACKS_TIME_RANGE,
+      }),
+  });
+
+  return {
+    spotifyUserId: account.spotifyUserId,
+    displayName: account.displayName,
+    topTracks,
+  };
+}
 
 // Spotify can relink the "same" song to a different track id per user (e.g.
 // regional/market availability, remasters vs. original releases), so
@@ -22,7 +59,16 @@ function trackSignature(track: Pick<SpotifyTrackSummary, 'name' | 'artists'>): s
 
 export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = {
   type: 'whose-top-track',
-  generate({ players }) {
+  async generate({ accounts }) {
+    // Sequential by design (matches the original collector) — keeps
+    // Spotify call volume predictable and avoids bursting requests for
+    // large player counts. Individual accounts are still cache-backed, so
+    // repeat questions don't re-fetch.
+    const players: PlayerTopTracks[] = [];
+    for (const account of accounts) {
+      players.push(await fetchTopTracksForAccount(account));
+    }
+
     const eligiblePlayers = players.filter((player) => player.topTracks.length > 0);
 
     if (eligiblePlayers.length < MIN_PLAYERS) {

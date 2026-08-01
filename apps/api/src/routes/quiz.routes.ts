@@ -2,7 +2,6 @@ import { Router } from 'express';
 
 import { requireSession } from '../middleware/requireSession.js';
 import { generateQuestion } from '../services/quiz/quizGenerator.service.js';
-import { collectQuizSourceData } from '../services/quiz/quizDataCollector.service.js';
 import type { QuestionType } from '@spitster/shared';
 
 export const quizRoutes = Router();
@@ -19,12 +18,11 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
   }
 
   try {
-    // Player top-track data is served from an in-memory per-user cache
-    // after the first fetch (see spotifyDataCache.service.ts).
-    const collected = await collectQuizSourceData({ accounts });
-
+    // Each candidate generator fetches only the Spotify data it needs (via
+    // an in-memory per-user cache — see spotifyDataCache.service.ts), and
+    // only once it's actually being attempted.
     const requestedType = request.body?.type as QuestionType | undefined;
-    const question = generateQuestion({ players: collected.players, type: requestedType });
+    const question = await generateQuestion({ accounts, type: requestedType });
 
     if (!question) {
       response.status(422).json({ error: 'Not enough player data to build a question yet' });

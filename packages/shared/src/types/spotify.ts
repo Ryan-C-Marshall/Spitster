@@ -47,12 +47,6 @@ export interface SpotifyTrackSummary {
   artists: SpotifyArtistSummary[];
 }
 
-export interface SpotifyPlayerCollectedData {
-  spotifyUserId: string;
-  displayName: string | null;
-  topTracks: SpotifyTrackSummary[];
-}
-
 export interface SpotifySessionState {
   pendingAuths: Record<string, SpotifyPendingAuth>;
   connectedAccounts: Record<string, SpotifyConnectedAccount>;
@@ -71,8 +65,4 @@ export interface SpotifyTokenResponse {
   scope: string;
   expires_in: number;
   refresh_token?: string;
-}
-
-export interface SpotifyQuizCollectionResult {
-  players: SpotifyPlayerCollectedData[];
 }
