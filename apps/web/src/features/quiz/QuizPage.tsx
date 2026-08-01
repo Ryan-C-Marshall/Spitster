@@ -12,6 +12,7 @@ const DEFAULT_REVEAL_DELAY_MS = 20_000;
 // listed falls back to DEFAULT_REVEAL_DELAY_MS.
 const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
   'whose-top-track': 7_000,
+  'guess-the-playlist': 12_000,
 };
 
 function getRevealDelayMs(question: Question | null): number {

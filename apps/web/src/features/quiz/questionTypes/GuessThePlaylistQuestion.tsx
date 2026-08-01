@@ -23,7 +23,7 @@ export function GuessThePlaylistQuestionView({
     <div className="question-card">
       <div>
         <h2>Which playlist is this?</h2>
-        <p className="track-reveal-artist">The three songs belong to one of these playlists.</p>
+        <p className="track-reveal-artist">All three songs belong to one of these playlists.</p>
       </div>
 
       <div className="song-card-row">
@@ -50,7 +50,9 @@ export function GuessThePlaylistQuestionView({
         })}
       </div>
 
-      <ul className="option-list">
+      <div className="section-divider" aria-hidden="true" />
+
+      <ul className="option-list four-options">
         {question.options.map((option) => {
           const isCorrect = revealed && option.playlistId === question.correctPlaylistId;
 
