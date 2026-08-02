@@ -3,6 +3,7 @@ import type { Question, QuestionType, SpotifyConnectedAccount } from '@spitster/
 import { whoseTopTrackGenerator } from './questionTypes/whoseTopTrack.js';
 import { guessThePlaylistGenerator } from './questionTypes/guessThePlaylist.js';
 import { artistRankGenerator } from './questionTypes/artistRank.js';
+import { nameTheTitleGenerator, nameTheArtistGenerator } from './questionTypes/nameTheSong.js';
 
 /**
  * The contract every question type's generator implements. `generate` is
@@ -24,7 +25,10 @@ const generators: QuestionGenerator[] = [
   whoseTopTrackGenerator,
   guessThePlaylistGenerator,
   artistRankGenerator,
+  nameTheTitleGenerator,
+  nameTheArtistGenerator,
 ];
+
 export async function generateQuestion(input: {
   accounts: SpotifyConnectedAccount[];
   type?: QuestionType;

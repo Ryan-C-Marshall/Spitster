@@ -6,6 +6,7 @@ import { getEnv } from '../../../config/env.js';
 import { fetchUsersTopTracks } from '../../spotify/spotifyWebApi.service.js';
 import { getOrFetchSpotifyData } from '../../spotify/spotifyDataCache.service.js';
 import type { QuestionGenerator } from '../quizGenerator.service.js';
+import { trackSignature } from './trackSignature.js';
 
 // Need at least two players so there's more than one possible answer.
 const MIN_PLAYERS = 2;
@@ -42,19 +43,6 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
     displayName: account.displayName,
     topTracks,
   };
-}
-
-// Spotify can relink the "same" song to a different track id per user (e.g.
-// regional/market availability, remasters vs. original releases), so
-// comparing by id under-counts matches. Track name + artist name is a much
-// more reliable notion of "the same song" for quiz purposes.
-function trackSignature(track: Pick<SpotifyTrackSummary, 'name' | 'artists'>): string {
-  const normalizedArtists = track.artists
-    .map((artist) => artist.name.trim().toLowerCase())
-    .sort()
-    .join(',');
-
-  return `${track.name.trim().toLowerCase()}::${normalizedArtists}`;
 }
 
 export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = {

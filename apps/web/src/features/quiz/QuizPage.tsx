@@ -14,6 +14,8 @@ const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
   'whose-top-track': 7_000,
   'guess-the-playlist': 12_000,
   'artist-rank': 10_000,
+  'name-the-title': 20_000,
+  'name-the-artist': 20_000,
 };
 
 function getRevealDelayMs(question: Question | null): number {
@@ -71,6 +73,12 @@ export function QuizPage() {
 
     if (question.type === 'guess-the-playlist') {
       play(question.tracks[0].uri).catch((error) => {
+        setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
+      });
+    }
+
+    if (question.type === 'name-the-title' || question.type === 'name-the-artist') {
+      play(question.track.uri).catch((error) => {
         setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
       });
     }

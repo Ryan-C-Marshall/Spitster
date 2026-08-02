@@ -8,7 +8,7 @@ import type { SpotifyTrackSummary } from './spotify.js';
  *   4. Implement a generator (apps/api/src/services/quiz/questionTypes) and
  *      a display component (apps/web/src/features/quiz/questionTypes)
  */
-export type QuestionType = 'whose-top-track' | 'guess-the-playlist' | 'artist-rank';
+export type QuestionType = 'whose-top-track' | 'guess-the-playlist' | 'artist-rank' | 'name-the-title' | 'name-the-artist';
 
 export interface BaseQuestion {
   id: string;
@@ -76,5 +76,28 @@ export interface ArtistRankQuestion extends BaseQuestion {
   correctArtistId: string;
 }
 
-// | NextQuestionType, as more question types are added.
-export type Question = WhoseTopTrackQuestion | GuessThePlaylistQuestion | ArtistRankQuestion;
+/**
+ * "Name the title" / "Name the artist" — plays a track that appears in at
+ * least two connected players' long-term top 1000; no multiple choice, the
+ * answer is just the track itself, revealed on demand. The two types share
+ * this exact shape and only differ in prompt copy — kept as separate
+ * QuestionType literals (rather than one type with a mode field) so they
+ * plug into the existing generator-registry / QuestionView pattern the
+ * same way every other question type does.
+ */
+export interface NameTheTitleQuestion extends BaseQuestion {
+  type: 'name-the-title';
+  track: SpotifyTrackSummary;
+}
+
+export interface NameTheArtistQuestion extends BaseQuestion {
+  type: 'name-the-artist';
+  track: SpotifyTrackSummary;
+}
+
+export type Question =
+  | WhoseTopTrackQuestion
+  | GuessThePlaylistQuestion
+  | ArtistRankQuestion
+  | NameTheTitleQuestion
+  | NameTheArtistQuestion;
