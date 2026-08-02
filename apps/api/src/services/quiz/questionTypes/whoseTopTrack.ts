@@ -48,14 +48,11 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
 export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = {
   type: 'whose-top-track',
   async generate({ accounts }) {
-    // Sequential by design (matches the original collector) — keeps
-    // Spotify call volume predictable and avoids bursting requests for
-    // large player counts. Individual accounts are still cache-backed, so
-    // repeat questions don't re-fetch.
-    const players: PlayerTopTracks[] = [];
-    for (const account of accounts) {
-      players.push(await fetchTopTracksForAccount(account));
-    }
+    // Fetched in parallel — each account uses its own access token, so
+    // there's no shared Spotify rate-limit bucket to protect by going
+    // sequential. Individual accounts are still cache-backed, so repeat
+    // questions don't re-fetch.
+    const players = await Promise.all(accounts.map((account) => fetchTopTracksForAccount(account)));
 
     const eligiblePlayers = players.filter((player) => player.topTracks.length > 0);
 

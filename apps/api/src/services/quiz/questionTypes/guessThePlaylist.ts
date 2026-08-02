@@ -71,14 +71,12 @@ export const guessThePlaylistGenerator: QuestionGenerator<GuessThePlaylistQuesti
   async generate({ accounts }) {
     const accountsByUserId = new Map(accounts.map((account) => [account.spotifyUserId, account]));
 
-    // Sequential by design, same rationale as whoseTopTrackGenerator — keeps
-    // Spotify call volume predictable, and each account's playlist list is
+    // Fetched in parallel — see whoseTopTrack.ts for why sequential
+    // per-account fetching isn't needed. Each account's playlist list is
     // cache-backed so repeat questions don't re-fetch it. Accounts with no
     // owned playlists simply contribute nothing to the pool.
-    const pool: PooledPlaylist[] = [];
-    for (const account of accounts) {
-      pool.push(...(await fetchPlaylistsForAccount(account)));
-    }
+    const pooledResults = await Promise.all(accounts.map((account) => fetchPlaylistsForAccount(account)));
+    const pool: PooledPlaylist[] = pooledResults.flat();
 
     if (pool.length < MIN_PLAYLISTS_IN_POOL) {
       return null;

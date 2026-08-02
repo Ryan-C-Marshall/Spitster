@@ -19,12 +19,9 @@ export function NameTheSongQuestionView({
   return (
     <div className="question-card">
       <div className="question-header">
-        <div>
-          <h2>{HEADER_BY_TYPE[question.type]}</h2>
-          <div style={{ height: '0.5rem' }} />
-        </div>
+        <h2>{HEADER_BY_TYPE[question.type]}</h2>
 
-        <div className="lobby-card playing track-reveal-card">
+        <div className={`lobby-card playing track-reveal-card${revealed ? ' revealed' : ''}`}>
           {revealed ? (
             <div className="track-reveal-content">
               <h3 className="track-reveal-title">{question.track.name}</h3>

@@ -47,10 +47,9 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
 // long-term top 1000" and picks one. Both question types wrap this — they
 // only differ in the `type` literal they stamp on the result.
 async function pickSharedTrack(accounts: SpotifyConnectedAccount[]): Promise<SpotifyTrackSummary | null> {
-  const players: PlayerTopTracks[] = [];
-  for (const account of accounts) {
-    players.push(await fetchTopTracksForAccount(account));
-  }
+  // Fetched in parallel — see whoseTopTrack.ts for why sequential
+  // per-account fetching isn't needed.
+  const players = await Promise.all(accounts.map((account) => fetchTopTracksForAccount(account)));
 
   const eligiblePlayers = players.filter((player) => player.topTracks.length > 0);
   if (eligiblePlayers.length < MIN_PLAYERS) {

@@ -32,6 +32,7 @@ export function QuizPage() {
   const { play } = usePlayer();
 
   const requestIdRef = useRef(0);
+  const hasLoadedRef = useRef(false);
 
   async function loadQuestion() {
     const requestId = ++requestIdRef.current;
@@ -58,6 +59,8 @@ export function QuizPage() {
   }
 
   useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
     loadQuestion();
   }, []);
 

@@ -61,12 +61,10 @@ async function fetchTopArtistsForAccount(account: SpotifyConnectedAccount): Prom
 export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
   type: 'artist-rank',
   async generate({ accounts }) {
-    // Sequential by design, same rationale as the other generators — keeps
-    // Spotify call volume predictable; per-account results are cache-backed.
-    const players: PlayerTopArtists[] = [];
-    for (const account of accounts) {
-      players.push(await fetchTopArtistsForAccount(account));
-    }
+    // Fetched in parallel — see whoseTopTrack.ts for why sequential
+    // per-account fetching isn't needed. Per-account results are
+    // cache-backed.
+    const players = await Promise.all(accounts.map((account) => fetchTopArtistsForAccount(account)));
 
     const eligiblePlayers = players.filter((player) => player.topArtists.length > 0);
     if (eligiblePlayers.length < MIN_PLAYERS) {
