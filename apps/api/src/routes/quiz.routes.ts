@@ -2,12 +2,13 @@ import { Router } from 'express';
 
 import { requireSession } from '../middleware/requireSession.js';
 import { generateQuestion } from '../services/quiz/quizGenerator.service.js';
-import type { QuestionType } from '@spitster/shared';
+import type { GameMode, QuestionType } from '@spitster/shared';
 import { ensureFreshTokens, SpotifyReauthRequiredError } from '../services/spotify/tokenRefresh.service.js';
 
 export const quizRoutes = Router();
 
 const MIN_PLAYERS = 2;
+const GAME_MODES: GameMode[] = ['bingo', 'classic'];
 
 quizRoutes.post('/question', requireSession, async (request, response) => {
   const spotifySession = request.session.spotify;
@@ -18,7 +19,10 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
     return;
   }
 
-  console.log("Generating ", request.body?.type ? `a ${request.body.type} question` : 'a random question', `for ${accounts.length} players`);
+  const requestedMode = request.body?.mode as GameMode | undefined;
+  const mode: GameMode = GAME_MODES.includes(requestedMode as GameMode) ? (requestedMode as GameMode) : 'bingo';
+
+  console.log("Generating ", request.body?.type ? `a ${request.body.type} question` : 'a random question', `in ${mode} mode for ${accounts.length} players`);
 
   try {
     await ensureFreshTokens(accounts);
@@ -27,7 +31,7 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
     // an in-memory per-user cache — see spotifyDataCache.service.ts), and
     // only once it's actually being attempted.
     const requestedType = request.body?.type as QuestionType | undefined;
-    const question = await generateQuestion({ accounts, type: requestedType });
+    const question = await generateQuestion({ accounts, mode, type: requestedType });
 
     if (!question) {
       response.status(422).json({ error: 'Not enough player data to build a question yet' });

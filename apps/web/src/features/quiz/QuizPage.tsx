@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
-import type { Question } from '@spitster/shared';
+import type { GameMode, Question } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { QuestionView } from './QuestionView.js';
 
@@ -16,7 +16,18 @@ const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
   'artist-rank': 10_000,
   'name-the-title': 20_000,
   'name-the-artist': 20_000,
+  'crowd-favorite': 7_000,
 };
+
+const GAME_MODES: GameMode[] = ['bingo', 'classic'];
+const GAME_MODE_LABELS: Record<GameMode, string> = {
+  bingo: 'Bingo',
+  classic: 'Classic',
+};
+
+function parseGameMode(value: string | undefined): GameMode {
+  return GAME_MODES.includes(value as GameMode) ? (value as GameMode) : 'bingo';
+}
 
 function getRevealDelayMs(question: Question | null): number {
   if (!question) return DEFAULT_REVEAL_DELAY_MS;
@@ -24,6 +35,9 @@ function getRevealDelayMs(question: Question | null): number {
 }
 
 export function QuizPage() {
+  const { mode: modeParam } = useParams<{ mode?: string }>();
+  const gameMode = parseGameMode(modeParam);
+
   const [question, setQuestion] = useState<Question | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -42,7 +56,7 @@ export function QuizPage() {
     setStatusMessage(null);
 
     try {
-      const nextQuestion = await fetchQuestion();
+      const nextQuestion = await fetchQuestion(gameMode);
       if (requestId !== requestIdRef.current) {
         // A newer request has been made, so ignore this one.
         return;
@@ -68,7 +82,7 @@ export function QuizPage() {
   useEffect(() => {
     if (!question) return;
 
-    if (question.type === 'whose-top-track') {
+    if (question.type === 'whose-top-track' || question.type === 'crowd-favorite') {
       play(question.track.uri).catch((error) => {
         setStatusMessage(error instanceof Error ? error.message : 'Unable to play track.');
       });
@@ -115,7 +129,7 @@ export function QuizPage() {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <h1>Quiz</h1>
+          <h1>Quiz — {GAME_MODE_LABELS[gameMode]}</h1>
         </div>
         <div className="panel-actions">
           <Link to="/" className="secondary-button">

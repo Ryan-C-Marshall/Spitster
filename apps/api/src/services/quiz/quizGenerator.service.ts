@@ -1,9 +1,10 @@
-import type { Question, QuestionType, SpotifyConnectedAccount } from '@spitster/shared';
+import type { GameMode, Question, QuestionType, SpotifyConnectedAccount } from '@spitster/shared';
 
 import { whoseTopTrackGenerator } from './questionTypes/whoseTopTrack.js';
 import { guessThePlaylistGenerator } from './questionTypes/guessThePlaylist.js';
 import { artistRankGenerator } from './questionTypes/artistRank.js';
 import { nameTheTitleGenerator, nameTheArtistGenerator } from './questionTypes/nameTheSong.js';
+import { crowdFavoriteGenerator } from './questionTypes/crowdFavourite.js';
 
 /**
  * The contract every question type's generator implements. `generate` is
@@ -13,9 +14,15 @@ import { nameTheTitleGenerator, nameTheArtistGenerator } from './questionTypes/n
  * caller tries the next candidate rather than failing outright. Because
  * fetching only happens for the type currently being attempted, a type
  * never pays for data another type would have needed.
+ *
+ * `isClassicMode` opts a generator into 'classic' game mode instead of
+ * 'bingo' (the default). Classic mode is meant to have exactly one question
+ * type, so this is a flag rather than a general mode list — but nothing
+ * stops a future generator from also setting it if that changes.
  */
 export interface QuestionGenerator<T extends Question = Question> {
   type: T['type'];
+  isClassicMode?: boolean;
   generate(input: { accounts: SpotifyConnectedAccount[] }): Promise<T | null>;
 }
 
@@ -27,14 +34,20 @@ const generators: QuestionGenerator[] = [
   artistRankGenerator,
   nameTheTitleGenerator,
   nameTheArtistGenerator,
+  crowdFavoriteGenerator,
 ];
 
 export async function generateQuestion(input: {
   accounts: SpotifyConnectedAccount[];
+  mode: GameMode;
   type?: QuestionType;
 }): Promise<Question | null> {
+  const eligibleForMode = generators.filter((generator) =>
+    input.mode === 'classic' ? generator.isClassicMode === true : generator.isClassicMode !== true,
+  );
+
   const candidates = shuffle(
-    input.type ? generators.filter((generator) => generator.type === input.type) : generators,
+    input.type ? eligibleForMode.filter((generator) => generator.type === input.type) : eligibleForMode,
   );
 
   for (const generator of candidates) {

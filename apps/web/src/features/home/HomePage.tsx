@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { fetchSession } from '../../lib/apiClient.js';
-import type { SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
+import type { GameMode, SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 
 export function HomePage() {
@@ -12,6 +12,7 @@ export function HomePage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingAutoPlayAccountId, setPendingAutoPlayAccountId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>('bingo');
   const { play, isReady, currentTrackUri } = usePlayer();
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export function HomePage() {
   }
 
   function handleStartQuiz() {
-    navigate('/quiz');
+    navigate(`/quiz/${gameMode}`);
   }
 
   return (
@@ -91,6 +92,26 @@ export function HomePage() {
           <p>Connect each player’s Spotify account before starting the quiz.</p>
         </div>
         <div className="panel-actions">
+          <div className="mode-toggle" role="radiogroup" aria-label="Game mode">
+            <button
+              type="button"
+              className={`secondary-button${gameMode === 'bingo' ? ' selected' : ''}`}
+              role="radio"
+              aria-checked={gameMode === 'bingo'}
+              onClick={() => setGameMode('bingo')}
+            >
+              Bingo
+            </button>
+            <button
+              type="button"
+              className={`secondary-button${gameMode === 'classic' ? ' selected' : ''}`}
+              role="radio"
+              aria-checked={gameMode === 'classic'}
+              onClick={() => setGameMode('classic')}
+            >
+              Classic
+            </button>
+          </div>
           <button type="button" className="secondary-button" onClick={handleConnectNextPlayer} disabled={isBusy}>
             Connect next player
           </button>

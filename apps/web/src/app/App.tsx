@@ -22,6 +22,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/quiz" element={<QuizPage />} />
+            <Route path="/quiz/:mode" element={<QuizPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
           </Routes>
         </PlayerProvider>

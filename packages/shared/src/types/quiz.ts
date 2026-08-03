@@ -8,7 +8,20 @@ import type { SpotifyTrackSummary } from './spotify.js';
  *   4. Implement a generator (apps/api/src/services/quiz/questionTypes) and
  *      a display component (apps/web/src/features/quiz/questionTypes)
  */
-export type QuestionType = 'whose-top-track' | 'guess-the-playlist' | 'artist-rank' | 'name-the-title' | 'name-the-artist';
+export type QuestionType =
+  | 'whose-top-track'
+  | 'guess-the-playlist'
+  | 'artist-rank'
+  | 'name-the-title'
+  | 'name-the-artist'
+  | 'crowd-favorite';
+
+/**
+ * 'bingo' serves a random mix of every question type except 'crowd-favorite'.
+ * 'classic' serves only 'crowd-favorite'. See quizGenerator.service.ts for
+ * how a generator opts into classic mode.
+ */
+export type GameMode = 'bingo' | 'classic';
 
 export interface BaseQuestion {
   id: string;
@@ -95,9 +108,25 @@ export interface NameTheArtistQuestion extends BaseQuestion {
   track: SpotifyTrackSummary;
 }
 
+/**
+ * "Crowd favorite" — classic mode's only question type. Shaped just like
+ * WhoseTopTrackQuestion (plays a track, every connected player is a
+ * possible answer), but the track is drawn from the pool of every
+ * connected player's long-term top 1000 with a probability weighted by how
+ * many players share it, rather than picking a random player and then a
+ * random track of theirs. See crowdFavorite.ts for the weighting.
+ */
+export interface CrowdFavoriteQuestion extends BaseQuestion {
+  type: 'crowd-favorite';
+  track: SpotifyTrackSummary;
+  options: QuestionPlayerOption[];
+  correctSpotifyUserIds: string[];
+}
+
 export type Question =
   | WhoseTopTrackQuestion
   | GuessThePlaylistQuestion
   | ArtistRankQuestion
   | NameTheTitleQuestion
-  | NameTheArtistQuestion;
+  | NameTheArtistQuestion
+  | CrowdFavoriteQuestion;

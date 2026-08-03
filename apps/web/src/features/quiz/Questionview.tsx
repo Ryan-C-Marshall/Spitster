@@ -4,6 +4,7 @@ import { WhoseTopTrackQuestionView } from './questionTypes/WhoseTopTrackQuestion
 import { GuessThePlaylistQuestionView } from './questionTypes/GuessThePlaylistQuestion.js';
 import { ArtistRankQuestionView } from './questionTypes/ArtistRankQuestion.js';
 import { NameTheSongQuestionView } from './questionTypes/NameTheSongQuestion.js';
+import { CrowdFavoriteQuestionView } from './questionTypes/CrowdFavouriteQuestion.js';
 
 // Adding a question type: implement its display component in ./questionTypes
 // and add a case below. If a Question variant is left unhandled, the
@@ -19,6 +20,8 @@ export function QuestionView({ question, revealed }: { question: Question; revea
     case 'name-the-title':
     case 'name-the-artist':
       return <NameTheSongQuestionView question={question} revealed={revealed} />;
+    case 'crowd-favorite':
+      return <CrowdFavoriteQuestionView question={question} revealed={revealed} />;
     default: {
       // @ts-ignore
       const _exhaustive: never = question;

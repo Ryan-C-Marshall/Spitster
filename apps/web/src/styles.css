@@ -117,6 +117,18 @@ button:disabled {
   color: inherit;
 }
 
+.secondary-button.selected {
+  background: #8dd8ff;
+  color: #09111d;
+  font-weight: 700;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-right: 0.25rem;
+}
+
 .text-button {
   padding-inline: 0.85rem;
 }
@@ -215,15 +227,15 @@ button:disabled {
 
 .track-reveal-card {
   width: 100%;
-  min-height: 60px;
+  min-height: 70px;
    padding: 0.25rem 0.75rem;
    justify-content: flex-start;
   align-items: stretch; /* let content grow the card, like .song-card */
 }
 
-/* when not revealed, make max-height 60px */
+/* when not revealed, make max-height 70px */
 .track-reveal-card:not(.revealed) {
-  max-height: 60px;
+  max-height: 70px;
 }
 
 .track-reveal-gif {
