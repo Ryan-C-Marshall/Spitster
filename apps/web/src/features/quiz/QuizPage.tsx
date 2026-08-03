@@ -129,7 +129,7 @@ export function QuizPage() {
     <section className="panel">
       <div className="panel-header">
         <div>
-          <h1>Quiz — {GAME_MODE_LABELS[gameMode]}</h1>
+          <h1>{GAME_MODE_LABELS[gameMode]}</h1>
         </div>
         <div className="panel-actions">
           <Link to="/" className="secondary-button">

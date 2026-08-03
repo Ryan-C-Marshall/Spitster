@@ -47,13 +47,16 @@ function binomialCoefficient(n: number, k: number): number {
   return result;
 }
 
-// Picks a track so that, over many calls, each "layer" of the venn diagram
-// (songs shared by exactly k of the N players) gets roughly equal
-// representation — not each individual song. A song shared by k players is
-// therefore weighted proportional to C(N, k): the rarer the layer size is
-// among all possible subsets of players, the more each song in it "counts".
-// Empty layers (no song is shared by exactly that many players) simply
-// don't participate — the weights are normalized over non-empty layers only.
+// Picks a track so that, over many calls, each "layer" in the venn diagram
+// (songs shared by exactly k of the N players) gets songs picked proportional 
+// to the number of sections in that layer (i.e. the number of ways to choose k 
+// players from N). This roughly results in each 'section' in the venn diagram
+// being represented proportionally, though similarities / differences in music 
+// taste may affect the distribution. A song shared by k players is therefore 
+// weighted proportional to C(N, k): the rarer the layer size is among all 
+// possible subsets of players, the more each song in it "counts". Empty layers
+// (no song is shared by exactly that many players) simply don't participate — 
+// the weights are normalized over non-empty layers only.
 function pickWeightedTrack(
   bySignature: Map<string, { track: SpotifyTrackSummary; ownerSpotifyUserIds: string[] }>,
   playerCount: number,

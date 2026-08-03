@@ -13,9 +13,7 @@ export function CrowdFavoriteQuestionView({
     <div className="question-card">
       <div className="question-header">
         <div style={{ flex: 1, minWidth: 200 }}>
-          <h2>Whose crowd favorite is this?</h2>
-          <div style={{ height: '0.5rem' }} />
-          <p className="track-reveal-artist">This is in someone's long-term top 1000</p>
+          <h2>Whose song is this?</h2>
         </div>
 
         <div className={`lobby-card playing track-reveal-card${revealed ? ' revealed' : ''}`}>
