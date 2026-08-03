@@ -13,6 +13,7 @@
 #   .html
 #   .css
 #   .md
+#   .json
 #
 # Usage:
 #   ./create_project_zip_filtered.sh [project-name]
@@ -40,7 +41,7 @@ ZIP_NAME="${PROJECT_NAME}_${TIMESTAMP}_fileexclusive.zip"
 ZIP_PATH="${OUTPUT_DIR}/${ZIP_NAME}"
 
 # --- Included extensions --------------------------------------------------
-INCLUDED_EXTENSIONS="ts tsx html css md"
+INCLUDED_EXTENSIONS="ts tsx html css json md"
 
 # --- Clean up any previously generated zip files ---------------------------
 echo "Cleaning up previous archives matching '${ZIP_PATTERN}' in ${OUTPUT_DIR}..."
@@ -73,6 +74,11 @@ while IFS= read -r FILE; do
       break
     fi
   done
+
+  # Skip skipped files
+  if [ "$BASENAME" = "package-lock.json" ]; then
+    INCLUDE=false
+  fi
 
   if [ "$INCLUDE" = true ]; then
     FILES_TO_ZIP="${FILES_TO_ZIP}${FILE}
