@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import type { CrowdFavoriteQuestion } from '@spitster/shared';
 
 const musicPlayingGifUrl = new URL('../../../resources/images/music-playing.gif', import.meta.url).href;
 
-// One diagram per supported player count. If a classic-mode game ever has
-// more eligible players than we have diagrams for, clamp to the biggest we
-// have — revisit if games regularly run bigger than 5.
 const VENN_DIAGRAM_URLS: Record<number, string> = {
   2: new URL('../../../resources/images/venn-diagram-2.svg', import.meta.url).href,
   3: new URL('../../../resources/images/venn-diagram-3.svg', import.meta.url).href,
@@ -20,7 +17,9 @@ function getVennDiagramUrl(playerCount: number): string {
   return VENN_DIAGRAM_URLS[clamped];
 }
 
-interface RevealedDot {
+// Now owned by QuizPage (which doesn't unmount across "Next question"),
+// rather than living as local state in this component (which does).
+export interface CrowdFavoriteDot {
   questionId: string;
   trackName: string;
   artistNames: string;
@@ -37,31 +36,27 @@ function getCorrectUserNames(question: CrowdFavoriteQuestion): string[] {
 export function CrowdFavoriteQuestionView({
   question,
   revealed,
+  dots,
+  onDotRevealed,
 }: {
   question: CrowdFavoriteQuestion;
   revealed: boolean;
+  dots: CrowdFavoriteDot[];
+  onDotRevealed: (dot: CrowdFavoriteDot) => void;
 }) {
-  // Dots accumulate for as long as this component stays mounted — i.e. for
-  // the whole classic-mode session, since QuizPage keeps the same
-  // CrowdFavoriteQuestionView instance across "Next question".
-  const [dots, setDots] = useState<RevealedDot[]>([]);
-  const lastDottedQuestionId = useRef<string | null>(null);
-
   useEffect(() => {
     if (!revealed) return;
-    if (lastDottedQuestionId.current === question.id) return; // already added for this question
-    lastDottedQuestionId.current = question.id;
+    // Dedup against the dots the parent already has, rather than a local
+    // ref — this stays correct even if this component itself remounts.
+    if (dots.some((dot) => dot.questionId === question.id)) return;
 
-    setDots((prev) => [
-      ...prev,
-      {
-        questionId: question.id,
-        trackName: question.track.name,
-        artistNames: question.track.artists.map((artist) => artist.name).join(', '),
-        userNames: getCorrectUserNames(question),
-      },
-    ]);
-  }, [revealed, question.id]);
+    onDotRevealed({
+      questionId: question.id,
+      trackName: question.track.name,
+      artistNames: question.track.artists.map((artist) => artist.name).join(', '),
+      userNames: getCorrectUserNames(question),
+    });
+  }, [revealed, question.id, dots, onDotRevealed]);
 
   const revealedUserNames = revealed ? getCorrectUserNames(question) : [];
 

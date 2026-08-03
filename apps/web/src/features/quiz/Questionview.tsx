@@ -4,12 +4,19 @@ import { WhoseTopTrackQuestionView } from './questionTypes/WhoseTopTrackQuestion
 import { GuessThePlaylistQuestionView } from './questionTypes/GuessThePlaylistQuestion.js';
 import { ArtistRankQuestionView } from './questionTypes/ArtistRankQuestion.js';
 import { NameTheSongQuestionView } from './questionTypes/NameTheSongQuestion.js';
-import { CrowdFavoriteQuestionView } from './questionTypes/CrowdFavouriteQuestion.js';
+import { CrowdFavoriteQuestionView, type CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 
-// Adding a question type: implement its display component in ./questionTypes
-// and add a case below. If a Question variant is left unhandled, the
-// `_exhaustive` assignment in default will fail to compile.
-export function QuestionView({ question, revealed }: { question: Question; revealed: boolean }) {
+export function QuestionView({
+  question,
+  revealed,
+  crowdFavoriteDots,
+  onCrowdFavoriteDotRevealed,
+}: {
+  question: Question;
+  revealed: boolean;
+  crowdFavoriteDots: CrowdFavoriteDot[];
+  onCrowdFavoriteDotRevealed: (dot: CrowdFavoriteDot) => void;
+}) {
   switch (question.type) {
     case 'whose-top-track':
       return <WhoseTopTrackQuestionView question={question} revealed={revealed} />;
@@ -21,7 +28,14 @@ export function QuestionView({ question, revealed }: { question: Question; revea
     case 'name-the-artist':
       return <NameTheSongQuestionView question={question} revealed={revealed} />;
     case 'crowd-favorite':
-      return <CrowdFavoriteQuestionView question={question} revealed={revealed} />;
+      return (
+        <CrowdFavoriteQuestionView
+          question={question}
+          revealed={revealed}
+          dots={crowdFavoriteDots}
+          onDotRevealed={onCrowdFavoriteDotRevealed}
+        />
+      );
     default: {
       // @ts-ignore
       const _exhaustive: never = question;

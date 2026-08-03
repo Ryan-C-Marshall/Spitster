@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
 import type { GameMode, Question } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { QuestionView } from './QuestionView.js';
+import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 
 const DEFAULT_REVEAL_DELAY_MS = 20_000;
 
@@ -43,10 +44,20 @@ export function QuizPage() {
   const [timerStarted, setTimerStarted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // Lives here instead of inside CrowdFavoriteQuestionView because this
+  // component doesn't unmount between questions in a classic session, even
+  // though the loading-gated question view below does.
+  const [crowdFavoriteDots, setCrowdFavoriteDots] = useState<CrowdFavoriteDot[]>([]);
   const { play } = usePlayer();
 
   const requestIdRef = useRef(0);
   const hasLoadedRef = useRef(false);
+
+  const addCrowdFavoriteDot = useCallback((dot: CrowdFavoriteDot) => {
+    setCrowdFavoriteDots((prev) =>
+      prev.some((existing) => existing.questionId === dot.questionId) ? prev : [...prev, dot],
+    );
+  }, []);
 
   async function loadQuestion() {
     const requestId = ++requestIdRef.current;
@@ -145,7 +156,14 @@ export function QuizPage() {
 
       {isLoading ? <p className="muted">Loading question...</p> : null}
 
-      {!isLoading && question ? <QuestionView question={question} revealed={revealed} /> : null}
+      {!isLoading && question ? (
+        <QuestionView
+          question={question}
+          revealed={revealed}
+          crowdFavoriteDots={crowdFavoriteDots}
+          onCrowdFavoriteDotRevealed={addCrowdFavoriteDot}
+        />
+      ) : null}
 
       {!isLoading && question ? (
         <div className="timer-row">
