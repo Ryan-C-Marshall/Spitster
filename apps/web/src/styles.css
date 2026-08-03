@@ -274,6 +274,116 @@ button:disabled {
   color: rgba(245, 247, 251, 0.7);
 }
 
+.track-reveal-users {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #8dd8ff;
+}
+
+.venn-container {
+  position: relative;
+  width: 100%;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1rem;
+}
+
+.venn-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.venn-dots-overlay {
+  position: absolute;
+  inset: 1rem; /* matches .venn-container's padding so dots stay over the image */
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.5rem;
+  pointer-events: none; /* only individual dots should be interactive */
+}
+
+.venn-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8dd8ff;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  animation: venn-dot-reveal 1s ease-out forwards;
+}
+
+.venn-dot:hover,
+.venn-dot:focus-visible {
+  transform: scale(1.35);
+  outline: none;
+}
+
+.venn-dot:hover .venn-dot-card,
+.venn-dot:focus-visible .venn-dot-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -8px);
+}
+
+/* Scale (not width/height) so the flex-wrapped dots around it don't reflow
+   while this one is "big". */
+@keyframes venn-dot-reveal {
+  0%, 70% {
+    transform: scale(2.2);
+    background: #ffffff;
+    box-shadow: 0 0 24px 8px rgba(255, 255, 255, 0.9);
+  }
+  100% {
+    transform: scale(1);
+    background: #8dd8ff;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+.venn-dot-card {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  margin-bottom: 0.5rem;
+  min-width: 160px;
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(20, 22, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 5;
+  pointer-events: none;
+  text-align: left;
+}
+
+.venn-dot-card-title {
+  margin: 0 0 0.15rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.venn-dot-card-artist {
+  margin: 0 0 0.15rem;
+  font-size: 0.75rem;
+  color: rgba(245, 247, 251, 0.7);
+}
+
+.venn-dot-card-users {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #8dd8ff;
+}
+
 .question-card {
   display: flex;
   flex-direction: column;
