@@ -403,7 +403,7 @@ button:disabled {
 
 .venn-stage {
   position: relative;
-  width: 68%;
+  width: 60%;
   margin: 0 auto;
 }
 
@@ -538,7 +538,7 @@ button:disabled {
 }
 
 .timer-row {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   display: flex;
   align-items: center;
   gap: 0.75rem;

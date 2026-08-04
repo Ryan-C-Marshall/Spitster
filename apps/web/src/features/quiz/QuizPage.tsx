@@ -195,9 +195,6 @@ export function QuizPage() {
       </section>
 
       <div className="quiz-actions" aria-label="Question controls">
-        <Link to="/" className="icon-button icon-button--stacked" aria-label="Back to lobby" title="Back to lobby">
-          <img className="icon-button-image" src={homeIconUrl} alt="" aria-hidden="true" />
-        </Link>
         <button
           type="button"
           className="icon-button icon-button--stacked icon-button--primary"
@@ -208,6 +205,9 @@ export function QuizPage() {
         >
           <img className="icon-button-image" src={forwardIconUrl} alt="" aria-hidden="true" />
         </button>
+                <Link to="/" className="icon-button icon-button--stacked" aria-label="Back to lobby" title="Back to lobby">
+          <img className="icon-button-image" src={homeIconUrl} alt="" aria-hidden="true" />
+        </Link>
       </div>
     </div>
   );
