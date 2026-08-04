@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="266.66666"
+   height="266.66666"
+   viewBox="0 0 266.66666 266.66666"
+   sodipodi:docname="forward-arrow-symbol.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Brilliance"
+       id="filter2"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         type="hueRotate"
+         values="180"
+         result="color1"
+         id="feColorMatrix1" />
+      <feColorMatrix
+         values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 -0.21 -0.72 -0.07 2 0 "
+         result="fbSourceGraphic"
+         id="feColorMatrix2" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix3" />
+      <feColorMatrix
+         id="feColorMatrix4"
+         values="10 -10 -10 0 9.87382 -10 10 -10 0 9.87382 -10 -10 10 0 9.87382 0 0 0 1 0 "
+         in="fbSourceGraphic"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix5" />
+      <feColorMatrix
+         id="feColorMatrix6"
+         values="10 -1.17647 -1.17647 0 9.87382 -1.17647 10 -1.17647 0 9.87382 -1.17647 -1.17647 10 0 9.87382 0 0 0 1 0 "
+         in="fbSourceGraphic" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.0713551"
+     inkscape:cx="54.137045"
+     inkscape:cy="145.60998"
+     inkscape:window-width="1102"
+     inkscape:window-height="689"
+     inkscape:window-x="0"
+     inkscape:window-y="106"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1">
+    <image
+       width="387.34119"
+       height="387.34119"
+       preserveAspectRatio="none"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz&#10;AAALEwAACxMBAJqcGAAABLBJREFUeJzt3b+LXFUcxuFz7iSkEHZn10Yh2c0mwUKMRtLY25g0VjYp&#10;RW1sBMH/QQI2VgoKCtpKUthHsdFGtDIhJhuDgmSdnRURgs61SBeczdyZ++Pcc5+n3D1feGH5MDDN&#10;hgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMCAxK4HpO78+fNHJ3t7l8rZ7EIM&#10;YSOGcGtWjj679cutr7veRvMEcojt7e0niln8sijC8w//bhbKD7d2T755LVz7p4tttKPoekDCRqNZ&#10;/OL/4gghhCLEN+6e2P0khDBqeRctEsgcZ07sXIxFeOHQR0W4dPrEyU+DSLIlkDnKYvbiQg9FkjWB&#10;zFGG8NjCj0WSLYHMEcv4U6UDkWRJIHMcKf/9PITwd6UjkWTHH3KOvYODPzfG67/GEF+udBjD2c21&#10;8ZnJwf6VEELZzDraIpBDTKbT7zfX1+6FGC9WOhRJNgTyCJPp9DuRDJdAFiCS4RLIgkQyTAKpQCTD&#10;I5CKVopkPD49mYqkTwSyhKUjCeFZkfSLQJYkkmEQyApEkj+BrEgkeRNIDUSSL4HURCR5EkiNRJIf&#10;gdRMJHkRSANEkg+BNEQkeRBIg0TSfwJp2CqRbIzXT02m06tBJJ0RSAuWjSSGKJKOCaQlIukngbRI&#10;JP0jkJaJpF8E0oEHkWzshRhEkjiBdGQy3f9WJOkTSIdEkj6BdEwkaRNIAkSSLoEkQiRpEkhCRJIe&#10;gSRmxUh2RFIvgSRohUieE0m9BJIokaRBIAkTSfcEkrgHkYz/CDFcqHInknoIpAdE0h2B9IRIuiGQ&#10;HhFJ+wTSMyJpl0B6SCTtEUhPiaQdAumxVSLZXB9vTab7V5valguB9NyykYQYzo3X127sT6c/NjQt&#10;CwLJwLKRlGV8cv9g/6OmduWg6HoA9bh55/b75Sy8VeWmKMK5pvbkQiD5KEJRPlPpYja739CWbAgk&#10;D8Wp7e0PYoivVTz7ppk5+RBI/y0ZRwjFKLzbxKCcHOl6ACtZOo4Qyrdv3N79qv5JeRFIfy0dR1mG&#10;d36+s/teE6NyE7sewFJWjOP25SZG5Ugg/SOOFgmkX8TRMoH0hzg6IJB+EEdHBJI+cXRIIGkTR8cE&#10;ki5xJEAgaRJHIgSSHnEkRCBpEUdiBJIOcSRIIGkQR6IE0j1xJEwg3RJH4gTSHXH0gEC6IY6eEEj7&#10;xNEjAmmXOHpGIO0RRw8JpB3i6CmBNE8cPSaQZomj5wTSHHFkQCDNEEcmBFI/cWREIPUSR2YEUh9x&#10;ZEgg9RBHpgSyOnFkTCCrEUfmBLI8cQyAQJYjjoEQSHXiGBCBVCOOgRHI4sQxQAJZjDgGSiCPJo4B&#10;E8jhxDFw/k/6IU5tnbwcQxDHgPkEmWPn+M7ZYlT+UPVOHHkpuh6QqmI0e6XqjTjyI5B5yni80nNx&#10;ZEkg88Ty90WfiiNfApnvyiKPxJG3UdcDUjWZTu9uro2fCjGcnfdGHPnzCXKIeOzIq2EWPn7452UI&#10;f4Uyvi6O/PmadwFntraeLmN8qSzj42Usbx69f+zq9d+u3+t6FwAAAAAAAAAAAAAAAAAAAAAAAAAA&#10;AAAAAAAAAAAAAAAAAAAAAFCr/wBFOltJA6w6sgAAAABJRU5ErkJggg==&#10;"
+       id="image1"
+       style="stroke-width:0.688454;filter:url(#filter2)"
+       x="-60"
+       y="-58.938667" />
+  </g>
+</svg>

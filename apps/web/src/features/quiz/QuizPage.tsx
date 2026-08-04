@@ -8,8 +8,8 @@ import { QuestionView } from './QuestionView.js';
 import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 import { parseGameMode as parseQuizMode } from './quizMode.js';
 
-const homeIconUrl = new URL('../../resources/images/home-symbol.png', import.meta.url).href;
-const forwardIconUrl = new URL('../../resources/images/forward-arrow-symbol.png', import.meta.url).href;
+const homeIconUrl = new URL('../../resources/images/home-symbol.svg', import.meta.url).href;
+const forwardIconUrl = new URL('../../resources/images/forward-arrow-symbol.svg', import.meta.url).href;
 
 const DEFAULT_REVEAL_DELAY_MS = 20_000;
 const CROWD_FAVORITE_DOT_ANIMATION_MS = 1_000;
