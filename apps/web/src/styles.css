@@ -285,7 +285,6 @@ button:disabled {
   position: relative;
   width: 100%;
   border-radius: 18px;
-  background: #e4e6eb;
   border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 1rem;
 }
