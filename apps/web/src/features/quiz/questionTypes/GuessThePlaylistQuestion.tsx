@@ -21,8 +21,9 @@ export function GuessThePlaylistQuestionView({
 
   return (
     <div className="question-card">
-      <div>
+      <div className="question-header">
         <h2>Which playlist is this?</h2>
+        <p></p>
         <p className="track-reveal-artist">All three songs belong to one of these playlists.</p>
       </div>
 
