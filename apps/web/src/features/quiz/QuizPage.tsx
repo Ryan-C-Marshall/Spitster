@@ -8,6 +8,7 @@ import { QuestionView } from './QuestionView.js';
 import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 
 const DEFAULT_REVEAL_DELAY_MS = 20_000;
+const CROWD_FAVORITE_DOT_ANIMATION_MS = 1_000;
 
 // Override the reveal delay for specific question types here; anything not
 // listed falls back to DEFAULT_REVEAL_DELAY_MS.
@@ -52,11 +53,35 @@ export function QuizPage() {
 
   const requestIdRef = useRef(0);
   const hasLoadedRef = useRef(false);
+  const settledDotTimersRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    return () => {
+      for (const timerId of settledDotTimersRef.current) {
+        window.clearTimeout(timerId);
+      }
+      settledDotTimersRef.current = [];
+    };
+  }, []);
 
   const addCrowdFavoriteDot = useCallback((dot: CrowdFavoriteDot) => {
-    setCrowdFavoriteDots((prev) =>
-      prev.some((existing) => existing.questionId === dot.questionId) ? prev : [...prev, dot],
-    );
+    setCrowdFavoriteDots((prev) => {
+      if (prev.some((existing) => existing.questionId === dot.questionId)) {
+        return prev;
+      }
+
+      const nextDot = { ...dot, isFresh: true };
+      const timerId = window.setTimeout(() => {
+        setCrowdFavoriteDots((current) =>
+          current.map((existing) =>
+            existing.questionId === nextDot.questionId ? { ...existing, isFresh: false } : existing,
+          ),
+        );
+      }, CROWD_FAVORITE_DOT_ANIMATION_MS);
+
+      settledDotTimersRef.current.push(timerId);
+      return [...prev, nextDot];
+    });
   }, []);
 
   async function loadQuestion() {
