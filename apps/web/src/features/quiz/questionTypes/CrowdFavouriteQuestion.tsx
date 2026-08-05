@@ -27,6 +27,8 @@ export interface CrowdFavoriteDot {
   userNames: string[];
   correctSpotifyUserIds: string[];
   isFresh: boolean;
+  // Persisted Venn overlay position for this dot (values are relative 0..1).
+  vennPosition?: VennPoint;
 }
 
 type VennPoint = {
@@ -126,13 +128,28 @@ export function CrowdFavoriteQuestionView({
     // ref — this stays correct even if this component itself remounts.
     if (dots.some((dot) => dot.questionId === question.id)) return;
 
-    onDotRevealed({
+    // Build the base dot payload.
+    const newDotBase: CrowdFavoriteDot = {
       questionId: question.id,
       trackName: question.track.name,
       artistNames: question.track.artists.map((artist) => artist.name).join(', '),
       userNames: getCorrectUserNames(question),
       correctSpotifyUserIds: question.correctSpotifyUserIds,
       isFresh: true,
+    };
+
+    // Compute how many existing dots are already in the same Venn region so
+    // the fallback deterministic algorithm remains sensible.
+    const regionKey = getDotRegionKey(question, newDotBase);
+    const indexWithinRegion = dots.filter((existingDot) => getDotRegionKey(question, existingDot) === regionKey).length;
+
+    // Sample a position for this dot now and persist it on the dot object so
+    // it doesn't shuffle on every render. Prefer samplePoints when available.
+    const chosenPosition = getCrowdFavoriteDotPosition(question, newDotBase, indexWithinRegion, true);
+
+    onDotRevealed({
+      ...newDotBase,
+      vennPosition: chosenPosition,
     });
   }, [revealed, question.id, dots, onDotRevealed]);
 
@@ -174,7 +191,10 @@ export function CrowdFavoriteQuestionView({
               const indexWithinRegion = dots
                 .slice(0, index)
                 .filter((existingDot) => getDotRegionKey(question, existingDot) === regionKey).length;
-              const position = getCrowdFavoriteDotPosition(question, dot, indexWithinRegion, true);
+              // Use a persisted position if the parent stored one when the dot
+              // was first revealed; otherwise fall back to sampling (this
+              // path should only happen for older dots without stored positions).
+              const position = dot.vennPosition ?? getCrowdFavoriteDotPosition(question, dot, indexWithinRegion, true);
 
               return (
                 <div
