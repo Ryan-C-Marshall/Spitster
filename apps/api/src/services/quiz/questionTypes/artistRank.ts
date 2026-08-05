@@ -60,7 +60,7 @@ async function fetchTopArtistsForAccount(account: SpotifyConnectedAccount): Prom
 
 export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
   type: 'artist-rank',
-  async generate({ accounts }) {
+  async generate({ accounts, history }) {
     // Fetched in parallel — see whoseTopTrack.ts for why sequential
     // per-account fetching isn't needed. Per-account results are
     // cache-backed.
@@ -101,11 +101,13 @@ export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
 
     console.log("Correct candidates for 'artist-rank' question:", correctCandidates.map((artist) => artist.name).join(', '));
 
-    if (correctCandidates.length === 0) {
+    const unusedCorrectCandidates = correctCandidates.filter((artist) => !history.has(artist.id));
+
+    if (unusedCorrectCandidates.length === 0) {      
       return null;
     }
 
-    const correctArtist = pickRandom(correctCandidates);
+    const correctArtist = pickRandom(unusedCorrectCandidates);
 
     const playerRanks: ArtistRankPlayerRank[] = eligiblePlayers.map((player) => ({
       spotifyUserId: player.spotifyUserId,
@@ -136,6 +138,8 @@ export const artistRankGenerator: QuestionGenerator<ArtistRankQuestion> = {
       toArtistOption(correctArtist),
       ...decoys.map(toArtistOption),
     ]);
+
+    history.add(correctArtist.id);
 
     return {
       id: randomUUID(),

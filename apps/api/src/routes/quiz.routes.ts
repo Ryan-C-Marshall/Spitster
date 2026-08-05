@@ -31,7 +31,8 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
     // an in-memory per-user cache — see spotifyDataCache.service.ts), and
     // only once it's actually being attempted.
     const requestedType = request.body?.type as QuestionType | undefined;
-    const question = await generateQuestion({ accounts, mode, type: requestedType });
+    const answerHistoryStore = (request.session.quizHistory ??= {});
+    const question = await generateQuestion({ accounts, mode, type: requestedType, answerHistoryStore });
 
     if (!question) {
       response.status(422).json({ error: 'Not enough player data to build a question yet' });

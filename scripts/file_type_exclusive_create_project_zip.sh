@@ -41,7 +41,7 @@ ZIP_NAME="${PROJECT_NAME}_${TIMESTAMP}_fileexclusive.zip"
 ZIP_PATH="${OUTPUT_DIR}/${ZIP_NAME}"
 
 # --- Included extensions --------------------------------------------------
-INCLUDED_EXTENSIONS="ts tsx html css json md"
+INCLUDED_EXTENSIONS="ts tsx html css json mjs md"
 
 # --- Clean up any previously generated zip files ---------------------------
 echo "Cleaning up previous archives matching '${ZIP_PATTERN}' in ${OUTPUT_DIR}..."
@@ -50,6 +50,7 @@ find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$ZIP_PATTERN" -print -delete
 # --- Collect matching files and skipped extensions -------------------------
 FILES_TO_ZIP=""
 SKIPPED_EXTENSIONS=""
+SKIPPED_FILES="package-lock.json venn-regions.json vennRegionCentroids.ts"
 
 echo "Scanning git-tracked files..."
 
@@ -76,9 +77,12 @@ while IFS= read -r FILE; do
   done
 
   # Skip skipped files
-  if [ "$BASENAME" = "package-lock.json" ]; then
-    INCLUDE=false
-  fi
+  for SKIPPED in $SKIPPED_FILES; do
+    if [ "$BASENAME" = "$SKIPPED" ]; then
+     INCLUDE=false
+     break
+    fi
+  done
 
   if [ "$INCLUDE" = true ]; then
     FILES_TO_ZIP="${FILES_TO_ZIP}${FILE}

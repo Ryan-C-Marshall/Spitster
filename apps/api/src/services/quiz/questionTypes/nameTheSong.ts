@@ -12,6 +12,7 @@ import { fetchUsersTopTracks } from '../../spotify/spotifyWebApi.service.js';
 import { getOrFetchSpotifyData } from '../../spotify/spotifyDataCache.service.js';
 import { trackSignature } from './trackSignature.js';
 import type { QuestionGenerator } from '../quizGenerator.service.js';
+import { AnswerHistory } from '../answerHistory.service.js';
 
 const MIN_PLAYERS = 2;
 const MIN_PLAYERS_SHARING_TRACK = 2;
@@ -46,7 +47,10 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
 // Shared core: builds the pool of "songs at least two players have in their
 // long-term top 1000" and picks one. Both question types wrap this — they
 // only differ in the `type` literal they stamp on the result.
-async function pickSharedTrack(accounts: SpotifyConnectedAccount[]): Promise<SpotifyTrackSummary | null> {
+async function pickSharedTrack(
+  accounts: SpotifyConnectedAccount[],
+  history: AnswerHistory,
+): Promise<SpotifyTrackSummary | null> {
   // Fetched in parallel — see whoseTopTrack.ts for why sequential
   // per-account fetching isn't needed.
   const players = await Promise.all(accounts.map((account) => fetchTopTracksForAccount(account)));
@@ -77,29 +81,34 @@ async function pickSharedTrack(accounts: SpotifyConnectedAccount[]): Promise<Spo
 
   const pool = [...bySignature.values()]
     .filter((entry) => entry.ownerCount >= MIN_PLAYERS_SHARING_TRACK)
+    .filter((entry) => !history.has(trackSignature(entry.track)))
     .map((entry) => entry.track);
 
   if (pool.length === 0) {
     return null;
   }
 
-  return pool[Math.floor(Math.random() * pool.length)];
+  console.log("Shared track pool (top-1000, 2 players) length:", pool.length);
+
+  const track = pool[Math.floor(Math.random() * pool.length)];
+  history.add(trackSignature(track));
+  return track;
 }
 
 export const nameTheTitleGenerator: QuestionGenerator<NameTheTitleQuestion> = {
   type: 'name-the-title',
-  async generate({ accounts }) {
-    const track = await pickSharedTrack(accounts);
+  async generate({ accounts, history }) {
+    const track = await pickSharedTrack(accounts, history);
     if (!track) return null;
-    return { id: randomUUID(), type: 'name-the-title', track };
+    return { id: randomUUID(), type: 'name-the-title', track, historyKey: 'shared-track-name' };  // Use the same history bucket as name-the-artist, since they share the same track pool.
   },
 };
 
 export const nameTheArtistGenerator: QuestionGenerator<NameTheArtistQuestion> = {
   type: 'name-the-artist',
-  async generate({ accounts }) {
-    const track = await pickSharedTrack(accounts);
+  async generate({ accounts, history }) {
+    const track = await pickSharedTrack(accounts, history);
     if (!track) return null;
-    return { id: randomUUID(), type: 'name-the-artist', track };
+    return { id: randomUUID(), type: 'name-the-artist', track, historyKey: 'shared-track-name' };
   },
 };

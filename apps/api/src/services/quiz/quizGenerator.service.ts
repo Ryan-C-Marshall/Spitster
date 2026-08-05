@@ -5,6 +5,7 @@ import { guessThePlaylistGenerator } from './questionTypes/guessThePlaylist.js';
 import { artistRankGenerator } from './questionTypes/artistRank.js';
 import { nameTheTitleGenerator, nameTheArtistGenerator } from './questionTypes/nameTheSong.js';
 import { crowdFavoriteGenerator } from './questionTypes/crowdFavourite.js';
+import { getAnswerHistoryBucket, type AnswerHistory, type AnswerHistoryStore } from './answerHistory.service.js';
 
 /**
  * The contract every question type's generator implements. `generate` is
@@ -23,7 +24,11 @@ import { crowdFavoriteGenerator } from './questionTypes/crowdFavourite.js';
 export interface QuestionGenerator<T extends Question = Question> {
   type: T['type'];
   isClassicMode?: boolean;
-  generate(input: { accounts: SpotifyConnectedAccount[] }): Promise<T | null>;
+  /** Bucket key for this generator's answer history. Defaults to `type`;
+   * set explicitly to share a bucket with another generator (e.g. two
+   * types that shouldn't repeat each other's answers either). */
+  historyKey?: string;
+  generate(input: { accounts: SpotifyConnectedAccount[]; history: AnswerHistory }): Promise<T | null>;
 }
 
 // Adding a question type: implement a generator in ./questionTypes and
@@ -41,6 +46,7 @@ export async function generateQuestion(input: {
   accounts: SpotifyConnectedAccount[];
   mode: GameMode;
   type?: QuestionType;
+  answerHistoryStore: AnswerHistoryStore;
 }): Promise<Question | null> {
   const eligibleForMode = generators.filter((generator) =>
     input.mode === 'classic' ? generator.isClassicMode === true : generator.isClassicMode !== true,
@@ -51,7 +57,8 @@ export async function generateQuestion(input: {
   );
 
   for (const generator of candidates) {
-    const question = await generator.generate({ accounts: input.accounts });
+    const history = getAnswerHistoryBucket(input.answerHistoryStore, generator.historyKey ?? generator.type);
+    const question = await generator.generate({ accounts: input.accounts, history });
     if (question) {
       return question;
     }

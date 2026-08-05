@@ -103,7 +103,7 @@ export const crowdFavoriteGenerator: QuestionGenerator<CrowdFavoriteQuestion> = 
   type: 'crowd-favorite',
   // Marks this generator as classic-mode-only — see quizGenerator.service.ts.
   isClassicMode: true,
-  async generate({ accounts }) {
+  async generate({ accounts, history }) {
     const players = await Promise.all(accounts.map((account) => fetchTopTracksForAccount(account)));
 
     const eligiblePlayers = players.filter((player) => player.topTracks.length > 0);
@@ -118,6 +118,7 @@ export const crowdFavoriteGenerator: QuestionGenerator<CrowdFavoriteQuestion> = 
       const seenForPlayer = new Set<string>(); // guard against dupes within one player's own list
       for (const track of player.topTracks) {
         const signature = trackSignature(track);
+        if (history.has(signature)) continue;
         if (seenForPlayer.has(signature)) continue;
         seenForPlayer.add(signature);
 
@@ -134,6 +135,8 @@ export const crowdFavoriteGenerator: QuestionGenerator<CrowdFavoriteQuestion> = 
     if (!chosen) {
       return null;
     }
+
+    history.add(trackSignature(chosen.track));
 
     return {
       id: randomUUID(),

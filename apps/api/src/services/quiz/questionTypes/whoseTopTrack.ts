@@ -47,7 +47,7 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
 
 export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = {
   type: 'whose-top-track',
-  async generate({ accounts }) {
+  async generate({ accounts, history }) {
     // Fetched in parallel — each account uses its own access token, so
     // there's no shared Spotify rate-limit bucket to protect by going
     // sequential. Individual accounts are still cache-backed, so repeat
@@ -60,8 +60,23 @@ export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = 
       return null;
     }
 
-    const correctPlayer = pickRandom(eligiblePlayers);
-    const track = pickRandom(correctPlayer.topTracks);
+    // Only players who still have at least one not-yet-played track are
+    // eligible to be the source of *this* question's track — but everyone
+    // stays in `eligiblePlayers` below for options/correctness, since a
+    // player is still a valid answer even if their tracks are exhausted.
+    const playersWithUnusedTracks = eligiblePlayers
+      .map((player) => ({
+        player,
+        unusedTracks: player.topTracks.filter((track) => !history.has(trackSignature(track))),
+      }))
+      .filter((entry) => entry.unusedTracks.length > 0);
+
+    if (playersWithUnusedTracks.length === 0) {
+      return null;
+    }
+
+    const { unusedTracks } = pickRandom(playersWithUnusedTracks);
+    const track = pickRandom(unusedTracks);
 
     // The same song can appear in more than one player's top tracks (e.g. a
     // couple who both have a favorite song in their top 200) — anyone who
@@ -74,6 +89,8 @@ export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = 
         player.topTracks.some((topTrack) => trackSignature(topTrack) === correctTrackSignature),
       )
       .map((player) => player.spotifyUserId);
+
+    history.add(correctTrackSignature);
 
     return {
       id: randomUUID(),
