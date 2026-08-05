@@ -15,5 +15,10 @@
   "devDependencies": {
     "@types/spotify-web-playback-sdk": "^0.1.19",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.10.1",
+    "martinez-polygon-clipping": "^0.8.1",
+    "svg-path-properties": "^2.0.2"
   }
 }

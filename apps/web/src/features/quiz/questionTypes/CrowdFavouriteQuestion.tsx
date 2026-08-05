@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { CrowdFavoriteQuestion } from '@spitster/shared';
+import { VENN_REGION_CENTROIDS } from './vennRegionCentroids.js';
 
 const musicPlayingGifUrl = new URL('../../../resources/images/music-playing.gif', import.meta.url).href;
 
@@ -33,35 +34,6 @@ type VennPoint = {
   y: number;
 };
 
-const VENN_LAYOUT_BY_PLAYER_COUNT: Record<number, VennPoint[]> = {
-  2: [
-    { x: 0.34, y: 0.52 },
-    { x: 0.66, y: 0.52 },
-  ],
-  3: [
-    { x: 0.34, y: 0.62 },
-    { x: 0.66, y: 0.62 },
-    { x: 0.5, y: 0.33 },
-  ],
-  4: [
-    { x: 0.33, y: 0.34 },
-    { x: 0.67, y: 0.34 },
-    { x: 0.33, y: 0.67 },
-    { x: 0.67, y: 0.67 },
-  ],
-  5: [
-    { x: 0.28, y: 0.42 },
-    { x: 0.63, y: 0.32 },
-    { x: 0.74, y: 0.57 },
-    { x: 0.43, y: 0.77 },
-    { x: 0.18, y: 0.58 },
-  ],
-};
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
 function hashString(value: string): number {
   let hash = 0;
 
@@ -90,39 +62,43 @@ function getCrowdFavoriteDotPosition(
   question: CrowdFavoriteQuestion,
   dot: CrowdFavoriteDot,
   indexWithinRegion: number,
+  random: boolean = false,
 ): VennPoint {
-  const playerCount = Math.min(Math.max(question.options.length, 2), 5);
-  const anchors = VENN_LAYOUT_BY_PLAYER_COUNT[playerCount] ?? VENN_LAYOUT_BY_PLAYER_COUNT[5];
-  const playerIndexById = new Map(question.options.map((option, index) => [option.spotifyUserId, index]));
-  const selectedIndices = dot.correctSpotifyUserIds
-    .map((spotifyUserId) => playerIndexById.get(spotifyUserId))
-    .filter((index): index is number => typeof index === 'number' && index >= 0);
+  const regionKey = getDotRegionKey(question, dot);
+  const regionData = VENN_REGION_CENTROIDS[question.options.length]?.[regionKey] as any;
 
-  if (selectedIndices.length === 0) {
+  if (!regionData) {
+    // Defensive fallback if options.length is outside expected range.
     return { x: 0.5, y: 0.5 };
   }
 
-  let xTotal = 0;
-  let yTotal = 0;
+  // If the generator emitted a precomputed list of sample points for this
+  // region, use it. Sample sequentially from the pre-generated list so
+  // dots occupy the true region shape rather than a circular centroid
+  // neighborhood. This is deterministic and stable across renders.
 
-  for (const index of selectedIndices) {
-    xTotal += anchors[index % anchors.length].x;
-    yTotal += anchors[index % anchors.length].y;
+  if (random) {
+    const pts = regionData.samplePoints as VennPoint[];
+    const chosen = pts[Math.floor(Math.random() * pts.length)];
+    return { x: chosen.x, y: chosen.y };
+  } else {
+    if (Array.isArray(regionData.samplePoints) && regionData.samplePoints.length > 0) {
+      const pts = regionData.samplePoints as VennPoint[];
+      const chosen = pts[indexWithinRegion % pts.length];
+      return { x: chosen.x, y: chosen.y };
+    }
   }
 
-  const averageX = xTotal / selectedIndices.length;
-  const averageY = yTotal / selectedIndices.length;
-  const centerPull = selectedIndices.length === 1 ? 0.12 : clamp(0.18 + selectedIndices.length * 0.04, 0.18, 0.36);
-  const pulledX = averageX + (0.5 - averageX) * centerPull;
-  const pulledY = averageY + (0.48 - averageY) * centerPull;
-
-  const offsetSeed = hashString(`${dot.questionId}:${getDotRegionKey(question, dot)}`);
+  // Backwards compatible: if no samplePoints were emitted yet, fall back
+  // to the previous centroid + polar jitter approach.
+  const centroid = { x: regionData.x as number, y: regionData.y as number };
+  const offsetSeed = hashString(`${dot.questionId}:${regionKey}`);
   const angle = (offsetSeed % 360) * (Math.PI / 180);
-  const radius = 0.012 + Math.min(indexWithinRegion, 4) * 0.01;
+  const radius = 0.012 + Math.min(indexWithinRegion, 4) * 0.05;
 
   return {
-    x: clamp(pulledX + Math.cos(angle) * radius, 0.1, 0.9),
-    y: clamp(pulledY + Math.sin(angle) * radius, 0.1, 0.9),
+    x: centroid.x + Math.cos(angle) * radius,
+    y: centroid.y + Math.sin(angle) * radius,
   };
 }
 
@@ -198,7 +174,7 @@ export function CrowdFavoriteQuestionView({
               const indexWithinRegion = dots
                 .slice(0, index)
                 .filter((existingDot) => getDotRegionKey(question, existingDot) === regionKey).length;
-              const position = getCrowdFavoriteDotPosition(question, dot, indexWithinRegion);
+              const position = getCrowdFavoriteDotPosition(question, dot, indexWithinRegion, true);
 
               return (
                 <div

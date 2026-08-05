@@ -19,7 +19,11 @@ export function NameTheSongQuestionView({
   return (
     <div className="question-card">
       <div className="question-header">
-        <h2>{HEADER_BY_TYPE[question.type]}</h2>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <h2>{HEADER_BY_TYPE[question.type]}</h2>
+          <div style={{ height: '0.5rem' }} />
+          <p className="track-reveal-artist">This is at least two players' top-1000 over the last year</p>
+        </div>
 
         <div className={`lobby-card playing track-reveal-card${revealed ? ' revealed' : ''}`}>
           {revealed ? (
