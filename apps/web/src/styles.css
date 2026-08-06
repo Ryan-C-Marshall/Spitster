@@ -421,8 +421,8 @@ button:disabled {
 
 .venn-dot {
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #8dd8ff;
   pointer-events: auto;
@@ -648,4 +648,63 @@ button:disabled {
   height: 100%;
   border-radius: 999px;
   background: #8dd8ff;
+}
+
+.bingo-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 0 0.5rem;
+}
+
+.bingo-spinner-svg {
+  width: min(340px, 78vw);
+  height: min(340px, 78vw);
+  overflow: visible;
+}
+
+.bingo-spinner-wedge {
+  stroke: rgba(6, 7, 12, 0.55);
+  stroke-width: 2;
+  transition: filter 200ms ease;
+}
+
+.bingo-spinner-wedge--won {
+  filter: brightness(1.35) saturate(1.15);
+  stroke: #f5f7fb;
+  stroke-width: 3;
+}
+
+.bingo-spinner-needle {
+  fill: #f5f7fb;
+  stroke: rgba(6, 7, 12, 0.4);
+  stroke-width: 1;
+}
+
+.bingo-spinner-charged--vibrating {
+  animation: bingo-spinner-vibrate 90ms linear infinite;
+}
+
+@keyframes bingo-spinner-vibrate {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(1.5px, -1px);
+  }
+  50% {
+    transform: translate(-1.5px, 1px);
+  }
+  75% {
+    transform: translate(1px, 1.5px);
+  }
+}
+
+.bingo-spinner-status {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(245, 247, 251, 0.85);
+  text-align: center;
 }

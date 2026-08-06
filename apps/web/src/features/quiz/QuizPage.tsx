@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
-import type { Question } from '@spitster/shared';
+import type { Question, QuestionType } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
+import { BingoSpinner } from './BingoSpinner.js';
 import { QuestionView } from './QuestionView.js';
 import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 import { parseGameMode as parseQuizMode } from './quizMode.js';
@@ -37,7 +38,15 @@ export function QuizPage() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [timerStarted, setTimerStarted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // Bingo mode doesn't fetch a question until the spinner has landed on a
+  // type, so there's nothing to "load" yet on mount — classic mode fetches
+  // immediately as before.
+  const [isLoading, setIsLoading] = useState(gameMode !== 'bingo');
+  // Bingo mode shows the spinner (instead of fetching immediately) on mount
+  // and on every "next question" click; classic mode never shows it, since
+  // it only has one question type.
+  const [showSpinner, setShowSpinner] = useState(gameMode === 'bingo');
+  const [spinnerRound, setSpinnerRound] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   // Lives here instead of inside CrowdFavoriteQuestionView because this
   // component doesn't unmount between questions in a classic session, even
@@ -78,35 +87,68 @@ export function QuizPage() {
     });
   }, []);
 
-  const loadQuestion = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    setIsLoading(true);
-    setRevealed(false);
-    setTimerStarted(false);
-    setStatusMessage(null);
+  // Fetches a question and, on success, reveals it; on failure, hides the
+  // spinner (if it was showing) and surfaces the error banner so "next
+  // question" is available to try again — see fetchQuestion for how `type`
+  // is forwarded to the API.
+  const fetchAndShowQuestion = useCallback(
+    async (type?: QuestionType) => {
+      const requestId = ++requestIdRef.current;
+      setIsLoading(true);
+      setRevealed(false);
+      setTimerStarted(false);
+      setStatusMessage(null);
 
-    try {
-      const nextQuestion = await fetchQuestion(gameMode);
-      if (requestId !== requestIdRef.current) {
-        // A newer request has been made, so ignore this one.
-        return;
+      try {
+        const nextQuestion = await fetchQuestion(gameMode, type);
+        if (requestId !== requestIdRef.current) {
+          // A newer request has been made, so ignore this one.
+          return;
+        }
+        setQuestion(nextQuestion);
+        setShowSpinner(false);
+      } catch (error) {
+        setQuestion(null);
+        setShowSpinner(false);
+        setStatusMessage(error instanceof Error ? error.message : 'Unable to load a question.');
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
-      setQuestion(nextQuestion);
-    } catch (error) {
+    },
+    [gameMode],
+  );
+
+  // Called by the button/nav action to move on to the next question. In
+  // bingo mode this just shows a fresh spinner — the actual fetch happens
+  // once the spinner lands (see handleSpinnerLanded). Classic mode has no
+  // spinner, since it only has one question type, so it fetches directly.
+  const startNextQuestion = useCallback(() => {
+    if (gameMode === 'bingo') {
       setQuestion(null);
-      setStatusMessage(error instanceof Error ? error.message : 'Unable to load a question.');
-    } finally {
-      if (requestId === requestIdRef.current) {
-        setIsLoading(false);
-      }
+      setStatusMessage(null);
+      setSpinnerRound((round) => round + 1);
+      setShowSpinner(true);
+    } else {
+      fetchAndShowQuestion();
     }
-  }, [gameMode]);
+  }, [gameMode, fetchAndShowQuestion]);
+
+  const handleSpinnerLanded = useCallback(
+    (type: QuestionType) => {
+      fetchAndShowQuestion(type);
+    },
+    [fetchAndShowQuestion],
+  );
 
   useEffect(() => {
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
-    loadQuestion();
-  }, [loadQuestion]);
+    if (gameMode !== 'bingo') {
+      fetchAndShowQuestion();
+    }
+  }, [gameMode, fetchAndShowQuestion]);
 
   // Start playback for whatever track the current question carries.
   useEffect(() => {
@@ -160,9 +202,13 @@ export function QuizPage() {
       <section className="panel quiz-panel">
         {statusMessage ? <div className="banner">{statusMessage}</div> : null}
 
-        {isLoading ? <p className="muted">Loading question...</p> : null}
+        {showSpinner ? (
+          <BingoSpinner key={spinnerRound} onLanded={handleSpinnerLanded} isFetching={isLoading} />
+        ) : null}
 
-        {!isLoading && question ? (
+        {!showSpinner && isLoading ? <p className="muted">Loading question...</p> : null}
+
+        {!showSpinner && !isLoading && question ? (
           <QuestionView
             question={question}
             revealed={revealed}
@@ -171,7 +217,7 @@ export function QuizPage() {
           />
         ) : null}
 
-        {!isLoading && question ? (
+        {!showSpinner && !isLoading && question ? (
           <div className="timer-row">
             <div className="timer-track">
               {timerStarted && !revealed ? (
@@ -200,8 +246,8 @@ export function QuizPage() {
           className="icon-button icon-button--stacked icon-button--primary"
           aria-label="Next question"
           title="Next question"
-          onClick={loadQuestion}
-          disabled={isLoading}
+          onClick={startNextQuestion}
+          disabled={isLoading || showSpinner}
         >
           <img className="icon-button-image" src={forwardIconUrl} alt="" aria-hidden="true" />
         </button>

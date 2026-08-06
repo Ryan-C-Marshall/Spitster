@@ -88,7 +88,7 @@ async function pickSharedTrack(
     return null;
   }
 
-  console.log("Shared track pool (top-1000, 2 players) length:", pool.length);
+  console.log("Shared track pool (top-1000, 2 players required) length:", pool.length);
 
   const track = pool[Math.floor(Math.random() * pool.length)];
   history.add(trackSignature(track));
