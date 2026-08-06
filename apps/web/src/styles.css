@@ -672,8 +672,9 @@ button:disabled {
 
 .bingo-spinner-wedge--won {
   filter: brightness(1.35) saturate(1.15);
-  stroke: #f5f7fb;
-  stroke-width: 3;
+  transform-origin: center;
+  transform: scale(1.05);
+  transition: filter 200ms ease, transform 200ms ease;
 }
 
 .bingo-spinner-needle {

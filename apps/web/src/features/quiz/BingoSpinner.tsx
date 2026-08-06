@@ -22,6 +22,11 @@ const STOP_VELOCITY_THRESHOLD_DEG_S = 4;
 const OVERCHARGE_RATE = 0.12;
 const OVERCHARGE_CAP = 0.3;
 
+// How long the spinner sits on its landed result (showing the winning
+// wedge/label) before handing off to the question fetch. Gives players a
+// beat to actually see what it landed on before the view changes.
+const LANDED_PAUSE_MS = 1_000;
+
 // The disco ball fades through the wedge colors in sequence; the rate (in
 // color-slots per second) ramps from a lazy pulse up to a near-flicker as
 // charge/spin-speed approaches its max.
@@ -114,6 +119,7 @@ export function BingoSpinner({ onLanded, isFetching }: BingoSpinnerProps) {
   const rafRef = useRef<number | null>(null);
   const hasLandedRef = useRef(false);
   const onLandedRef = useRef(onLanded);
+  const landedTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     onLandedRef.current = onLanded;
@@ -174,7 +180,11 @@ export function BingoSpinner({ onLanded, isFetching }: BingoSpinnerProps) {
 
         if (!hasLandedRef.current) {
           hasLandedRef.current = true;
-          onLandedRef.current(sections[index].type);
+          const landedType = sections[index].type;
+          landedTimeoutRef.current = window.setTimeout(() => {
+            landedTimeoutRef.current = null;
+            onLandedRef.current(landedType);
+          }, LANDED_PAUSE_MS);
         }
         return;
       }
@@ -230,6 +240,10 @@ export function BingoSpinner({ onLanded, isFetching }: BingoSpinnerProps) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       stopLoop();
+      if (landedTimeoutRef.current !== null) {
+        window.clearTimeout(landedTimeoutRef.current);
+        landedTimeoutRef.current = null;
+      }
     };
   }, [tick, stopLoop]);
 

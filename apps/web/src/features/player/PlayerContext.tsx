@@ -1,5 +1,5 @@
 // features/player/PlayerContext.tsx
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SpotifyPlayer } from './SpotifyPlayer';
 
@@ -11,6 +11,10 @@ interface PlayerContextValue {
   isReady: boolean;
   currentTrackUri: string | null;
   play: (trackUri: string | null) => Promise<void>;
+  // Lets a quiz screen drop playback down to lobby-level volume for question
+  // types that don't play a track (e.g. artist-rank) — otherwise a track
+  // from the previous question would keep blaring at full quiz volume.
+  setQuietMode: (isQuiet: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
@@ -18,9 +22,21 @@ const PlayerContext = createContext<PlayerContextValue | null>(null);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [currentTrackUri, setCurrentTrackUri] = useState<string | null>(null);
+  const [isQuiet, setIsQuiet] = useState(false);
   const playbackErrorTick = useRef(0);
   const location = useLocation();
-  const volume = location.pathname.startsWith('/quiz') ? QUIZ_VOLUME : LOBBY_VOLUME;
+  const isQuizRoute = location.pathname.startsWith('/quiz');
+  const volume = isQuizRoute && !isQuiet ? QUIZ_VOLUME : LOBBY_VOLUME;
+
+  // Don't let a quiet flag from a previous quiz session linger once we've
+  // left the quiz entirely.
+  useEffect(() => {
+    if (!isQuizRoute) setIsQuiet(false);
+  }, [isQuizRoute]);
+
+  const setQuietMode = useCallback((quiet: boolean) => {
+    setIsQuiet(quiet);
+  }, []);
 
   const handlePlaybackError = useCallback(() => {
     playbackErrorTick.current += 1;
@@ -64,7 +80,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [deviceId]);
 
   return (
-  <PlayerContext.Provider value={{ deviceId, isReady: deviceId !== null, currentTrackUri, play }}>      {children}
+  <PlayerContext.Provider value={{ deviceId, isReady: deviceId !== null, currentTrackUri, play, setQuietMode }}>      {children}
       <SpotifyPlayer volume={volume} onDeviceReady={setDeviceId} onPlaybackError={handlePlaybackError} />
     </PlayerContext.Provider>
   );

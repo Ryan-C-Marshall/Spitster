@@ -31,6 +31,11 @@ function getRevealDelayMs(question: Question | null): number {
   return REVEAL_DELAY_MS_BY_TYPE[question.type] ?? DEFAULT_REVEAL_DELAY_MS;
 }
 
+// Question types that don't play a track. Playback volume drops to
+// lobby-level while one of these is showing, so a track left over from the
+// previous question doesn't keep blaring under a silent question type.
+const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank']);
+
 export function QuizPage() {
   const { mode: modeParam } = useParams<{ mode?: string }>();
   const gameMode = parseQuizMode(modeParam);
@@ -52,7 +57,7 @@ export function QuizPage() {
   // component doesn't unmount between questions in a classic session, even
   // though the loading-gated question view below does.
   const [crowdFavoriteDots, setCrowdFavoriteDots] = useState<CrowdFavoriteDot[]>([]);
-  const { play } = usePlayer();
+  const { play, setQuietMode } = usePlayer();
 
   const requestIdRef = useRef(0);
   const hasLoadedRef = useRef(false);
@@ -173,13 +178,37 @@ export function QuizPage() {
     }
   }, [question]);
 
-  // The timer doesn't start automatically — the first player to know the
-  // answer presses space, which gives everyone else a fixed window to
-  // answer before it's revealed.
+  // Drop to lobby volume for question types that don't play a track (and
+  // while there's no question on screen yet, e.g. during the bingo spinner)
+  // so nothing from a prior question keeps playing loudly underneath.
+  useEffect(() => {
+    if (!question) {
+      setQuietMode(true);
+      return;
+    }
+    setQuietMode(SILENT_QUESTION_TYPES.has(question.type));
+  }, [question, setQuietMode]);
+
+  // Space bar drives most of the question flow: the first player to know
+  // the answer presses it to start the timer (giving everyone else a fixed
+  // window to answer before it's revealed); once the answer is already
+  // revealed — whether the timer ran out or someone hit "Reveal answer" —
+  // space instead acts as the "next question" button. While the bingo
+  // spinner is showing it handles space bar input itself, so this handler
+  // steps aside.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.code !== 'Space') return;
-      if (!question || revealed || timerStarted) return;
+      if (event.code !== 'Space' || event.repeat) return;
+      if (showSpinner || !question) return;
+
+      if (revealed) {
+        if (isLoading) return;
+        event.preventDefault();
+        startNextQuestion();
+        return;
+      }
+
+      if (timerStarted) return;
 
       event.preventDefault();
       setTimerStarted(true);
@@ -187,7 +216,7 @@ export function QuizPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [question, revealed, timerStarted]);
+  }, [question, revealed, timerStarted, showSpinner, isLoading, startNextQuestion]);
 
   // Reveal the answer automatically once the timer runs out.
   useEffect(() => {
