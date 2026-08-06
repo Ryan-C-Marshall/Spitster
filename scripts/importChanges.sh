@@ -50,7 +50,7 @@ echo
 
 count=0
 
-find "$CHANGES_DIR" -type f | while IFS= read -r source_file; do
+while IFS= read -r source_file; do
 
     relative_path="${source_file#$CHANGES_DIR/}"
     destination="$PROJECT_ROOT/$relative_path"
@@ -69,7 +69,23 @@ find "$CHANGES_DIR" -type f | while IFS= read -r source_file; do
 
     printf "%-8s %s\n" "$action" "$relative_path"
 
-done
+done < <(find "$CHANGES_DIR" -type f)
+
+echo
+echo "Copied $count file(s)."
+
+###############################################################################
+# Delete changes directory
+###############################################################################
+
+if [ -d "$CHANGES_DIR" ]; then
+    echo
+    echo "Removing changes directory..."
+    rm -rf "$CHANGES_DIR"
+fi
+
+echo
+echo "Finished."
 
 echo
 echo "Done."

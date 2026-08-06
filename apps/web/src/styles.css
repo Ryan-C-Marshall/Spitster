@@ -679,7 +679,16 @@ button:disabled {
 .bingo-spinner-needle {
   fill: #f5f7fb;
   stroke: rgba(6, 7, 12, 0.4);
-  stroke-width: 1;
+  stroke-width: 2;
+}
+
+.bingo-spinner-ball {
+  isolation: isolate;
+}
+
+.bingo-spinner-ball-highlight {
+  mix-blend-mode: color;
+  transition: fill 60ms linear;
 }
 
 .bingo-spinner-charged--vibrating {
