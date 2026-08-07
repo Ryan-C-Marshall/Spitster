@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
 import type { Question, QuestionType } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { BingoSpinner } from './BingoSpinner.js';
+import { BINGO_SPINNER_SECTIONS } from './bingoSpinnerSections.js';
 import { QuestionView } from './QuestionView.js';
 import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 import { parseGameMode as parseQuizMode } from './quizMode.js';
@@ -36,6 +37,13 @@ function getRevealDelayMs(question: Question | null): number {
 // previous question doesn't keep blaring under a silent question type.
 const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank']);
 
+// Looked up once the bingo spinner lands, so the chosen wedge's color can
+// persist onto the question page (border + title) below. Not relevant to
+// classic mode, which never shows the spinner.
+const BINGO_COLOR_BY_TYPE: Partial<Record<QuestionType, string>> = Object.fromEntries(
+  BINGO_SPINNER_SECTIONS.map((section) => [section.type, section.color]),
+);
+
 export function QuizPage() {
   const { mode: modeParam } = useParams<{ mode?: string }>();
   const gameMode = parseQuizMode(modeParam);
@@ -53,6 +61,10 @@ export function QuizPage() {
   const [showSpinner, setShowSpinner] = useState(gameMode === 'bingo');
   const [spinnerRound, setSpinnerRound] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // The landed spinner wedge's color, carried onto the question page as its
+  // border/title color. Cleared whenever a fresh spinner is shown so the
+  // glow doesn't linger from the previous question while the next one spins.
+  const [bingoQuestionColor, setBingoQuestionColor] = useState<string | null>(null);
   // Lives here instead of inside CrowdFavoriteQuestionView because this
   // component doesn't unmount between questions in a classic session, even
   // though the loading-gated question view below does.
@@ -135,6 +147,7 @@ export function QuizPage() {
       setStatusMessage(null);
       setSpinnerRound((round) => round + 1);
       setShowSpinner(true);
+      setBingoQuestionColor(null);
     } else {
       fetchAndShowQuestion();
     }
@@ -142,6 +155,7 @@ export function QuizPage() {
 
   const handleSpinnerLanded = useCallback(
     (type: QuestionType) => {
+      setBingoQuestionColor(BINGO_COLOR_BY_TYPE[type] ?? null);
       fetchAndShowQuestion(type);
     },
     [fetchAndShowQuestion],
@@ -226,9 +240,16 @@ export function QuizPage() {
     return () => clearTimeout(timer);
   }, [question, timerStarted, revealed]);
 
+  // Only glow once the spinner has landed and its question is actually on
+  // screen — not while the spinner itself is spinning/charging.
+  const showBingoGlow = Boolean(bingoQuestionColor) && !showSpinner && !isLoading && Boolean(question);
+
   return (
     <div className="quiz-stage">
-      <section className="panel quiz-panel">
+      <section
+        className={`panel quiz-panel${showBingoGlow ? ' bingo-question-glow' : ''}`}
+        style={showBingoGlow ? ({ '--bingo-question-color': bingoQuestionColor } as CSSProperties) : undefined}
+      >
         {statusMessage ? <div className="banner">{statusMessage}</div> : null}
 
         {showSpinner ? (

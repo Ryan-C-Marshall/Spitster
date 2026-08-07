@@ -101,6 +101,7 @@ export const whoseTopTrackGenerator: QuestionGenerator<WhoseTopTrackQuestion> = 
         displayName: player.displayName,
       })),
       correctSpotifyUserIds,
+      historyKey: 'shared-track-name',
     };
   },
 };

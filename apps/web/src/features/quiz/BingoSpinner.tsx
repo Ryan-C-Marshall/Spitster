@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { QuestionType } from '@spitster/shared';
 
 import { BINGO_SPINNER_SECTIONS } from './bingoSpinnerSections.js';
@@ -37,6 +37,8 @@ const SIZE = 340;
 const CENTER = SIZE / 2;
 const RING_OUTER_RADIUS = 162;
 const RING_INNER_RADIUS = 70;
+const WEDGE_ICON_RADIUS = (RING_INNER_RADIUS + RING_OUTER_RADIUS) / 2;
+const WEDGE_ICON_SIZE = 46;
 const BALL_RADIUS = 60;
 const NEEDLE_TIP_RADIUS = RING_INNER_RADIUS - 2;
 const NEEDLE_BASE_RADIUS = BALL_RADIUS - 15; // tucks under the ball's edge so the needle reads as attached to it
@@ -278,19 +280,49 @@ export function BingoSpinner({ onLanded, isFetching }: BingoSpinnerProps) {
           </clipPath>
         </defs>
 
-        <g>
+        <g className="bingo-spinner-wedge-glow-layer" aria-hidden="true">
           {sections.map((section, index) => {
             const startDeg = index * sectionAngle;
             const endDeg = startDeg + sectionAngle;
-            const isWinner = phase === 'landed' && landedIndex === index;
-
             return (
               <path
                 key={section.type}
                 d={annulusWedgePath(RING_INNER_RADIUS, RING_OUTER_RADIUS, startDeg, endDeg)}
                 fill={section.color}
-                className={isWinner ? 'bingo-spinner-wedge bingo-spinner-wedge--won' : 'bingo-spinner-wedge'}
+                className="bingo-spinner-wedge-glow"
               />
+            );
+          })}
+        </g>
+
+        <g>
+          {sections.map((section, index) => {
+            const startDeg = index * sectionAngle;
+            const endDeg = startDeg + sectionAngle;
+            const isWinner = phase === 'landed' && landedIndex === index;
+            const midDeg = (startDeg + endDeg) / 2;
+            const iconCenter = polarToCartesian(WEDGE_ICON_RADIUS, midDeg);
+
+            return (
+              <g key={section.type} className={isWinner ? 'bingo-spinner-wedge-group bingo-spinner-wedge-group--won' : 'bingo-spinner-wedge-group'}>
+                <path
+                  d={annulusWedgePath(RING_INNER_RADIUS, RING_OUTER_RADIUS, startDeg, endDeg)}
+                  fill={section.color}
+                  className="bingo-spinner-wedge"
+                />
+                {section.iconUrl ? (
+                  <image
+                    href={section.iconUrl}
+                    x={iconCenter.x - WEDGE_ICON_SIZE / 2}
+                    y={iconCenter.y - WEDGE_ICON_SIZE / 2}
+                    width={WEDGE_ICON_SIZE}
+                    height={WEDGE_ICON_SIZE}
+                    className="bingo-spinner-wedge-icon"
+                    preserveAspectRatio="xMidYMid meet"
+                    pointerEvents="none"
+                  />
+                ) : null}
+              </g>
             );
           })}
         </g>

@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchSession } from '../../lib/apiClient.js';
 import type { GameMode, SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
+import { BingoWordmark } from '../quiz/BingoWordmark.js';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ export function HomePage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingAutoPlayAccountId, setPendingAutoPlayAccountId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [gameMode, setGameMode] = useState<GameMode>('bingo');
+  const [gameMode, setGameMode] = useState<GameMode>('classic');
   const { play, isReady, currentTrackUri } = usePlayer();
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export function HomePage() {
   }
 
   return (
-    <section className="panel">
+    <section className={`panel${gameMode === 'bingo' ? ' bingo-mode-border' : ''}`}>
       <div className="panel-header">
         <div>
           <h1>Lobby</h1>
@@ -100,7 +101,7 @@ export function HomePage() {
               aria-checked={gameMode === 'bingo'}
               onClick={() => setGameMode('bingo')}
             >
-              Bingo
+              <BingoWordmark />
             </button>
             <button
               type="button"

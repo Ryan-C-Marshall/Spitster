@@ -314,6 +314,37 @@ button:disabled {
   }
 }
 
+/* Home page: shown on the main lobby panel while bingo mode is selected —
+   same rotating conic-gradient technique as .lobby-card.playing, just
+   recolored with the five bingo wedge colors. */
+.panel.bingo-mode-border {
+  position: relative;
+  border-color: transparent;
+}
+
+.panel.bingo-mode-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--angle),
+    #fefc92,
+    #fcc7fb,
+    #6abbdf,
+    #7ccb7f,
+    #c295d7,
+    #fefc92
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: rotate-border 6s linear infinite;
+  pointer-events: none;
+}
+
 .question-header {
   display: grid;
   grid-template-columns: minmax(200px, 1fr) 300px;
@@ -507,6 +538,55 @@ button:disabled {
   gap: 0.75rem;
 }
 
+/* Bingo mode: the wedge color the spinner landed on carries over onto the
+   question page as a border color, plus a soft glow — implemented as a
+   blurred color layer sitting behind the panel that peeks out past its
+   edges, rather than a literal box-shadow, so it reads as a halo instead of
+   a flat drop shadow.
+
+   The panel's own background (.panel) is intentionally translucent
+   (rgba(15, 18, 32, 0.7)) for the glass look, so the blurred glow color
+   can't just sit directly behind it — it would bleed straight through and
+   tint the whole card. `::after` is an opaque backing plate cut to the
+   panel's exact footprint, sandwiched between the glow (`::before`) and the
+   panel itself, so the color is only ever visible in the ring where the
+   glow extends past the backing plate's edges. `isolation: isolate` gives
+   this element its own stacking context so the negative z-indices below
+   stay local instead of interacting with unrelated page content. */
+.quiz-panel.bingo-question-glow {
+  position: relative;
+  isolation: isolate;
+  border-color: var(--bingo-question-color);
+  transition: border-color 300ms ease;
+}
+
+.quiz-panel.bingo-question-glow::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -2;
+  border-radius: 28px;
+  background: var(--bingo-question-color);
+  filter: blur(20px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.quiz-panel.bingo-question-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 24px;
+  background: #0f1220;
+  pointer-events: none;
+}
+
+.quiz-panel.bingo-question-glow .question-card h2 {
+  color: var(--bingo-question-color);
+  transition: color 300ms ease;
+}
+
 .option-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -664,17 +744,27 @@ button:disabled {
   overflow: visible;
 }
 
-.bingo-spinner-wedge {
-  stroke: rgba(6, 7, 12, 0.55);
-  stroke-width: 2;
-  transition: filter 200ms ease;
+.bingo-spinner-wedge-glow {
+  filter: blur(15px);
+  opacity: 0.95; /* tune to taste */
 }
 
-.bingo-spinner-wedge--won {
+.bingo-spinner-wedge {
+  /* stroke removed entirely — no border */
+  transition: filter 200ms ease; /* keep if you still want the --won brightness pop to transition */
+}
+
+.bingo-spinner-wedge-group--won {
   filter: brightness(1.35) saturate(1.15);
   transform-origin: center;
   transform: scale(1.03);
   transition: filter 200ms ease, transform 200ms ease;
+}
+
+.bingo-spinner-wedge-icon {
+  pointer-events: none;
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 3px rgba(6, 7, 12, 0.45));
 }
 
 .bingo-spinner-needle {

@@ -5,6 +5,7 @@ import { HomePage } from '../features/home/HomePage.js';
 import { QuizPage } from '../features/quiz/QuizPage.js';
 import { PlayerProvider } from '../features/player/PlayerContext.js';
 import { GAME_MODE_LABELS, getGameModeFromPathname } from '../features/quiz/quizMode.js';
+import { BingoWordmark } from '../features/quiz/BingoWordmark.js';
 
 export function App() {
   const location = useLocation();
@@ -17,7 +18,11 @@ export function App() {
           <Link to="/" className="brand">
             Spitster
           </Link>
-          {gameMode ? <span className="mode-pill">{GAME_MODE_LABELS[gameMode]}</span> : null}
+          {gameMode ? (
+            <span className="mode-pill">
+              {gameMode === 'bingo' ? <BingoWordmark /> : GAME_MODE_LABELS[gameMode]}
+            </span>
+          ) : null}
         </div>
 
       </header>
