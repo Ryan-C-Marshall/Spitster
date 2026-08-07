@@ -16,7 +16,7 @@ const BINGO_LETTER_COLORS: Record<string, string> = {
  * is left uncolored, so this is safe to use even if surrounding punctuation
  * or whitespace is passed in as part of `text`.
  */
-export function BingoWordmark({ text = 'Bingo', className }: { text?: string; className?: string }) {
+export function BingoWordmark({ text = 'Bingo!', className }: { text?: string; className?: string }) {
   return (
     // bold text
     <span className={`${className}` } style={{ fontWeight: 'bold' }}>
