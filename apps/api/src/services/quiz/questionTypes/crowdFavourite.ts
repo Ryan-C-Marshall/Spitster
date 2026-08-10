@@ -73,7 +73,6 @@ async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promi
       : await fetchFromTopSongsPlaylist(account, CROWD_FAVORITE_SOURCE);
 
   console.log('Fetched', topTracks.length, 'tracks for Spotify user', account.spotifyUserId, '(limit requested:', CROWD_FAVORITE_SOURCE.limit, ')');
-  // output all tracks fetched (one line per track) without truncation (with the track's position in the list)
   topTracks.forEach((track, index) => console.log(account.displayName || account.spotifyUserId, ` - `, index + 1, ` ${track.name} (${track.artists.map((a) => a.name).join(', ')})`));
 
   return { spotifyUserId: account.spotifyUserId, displayName: account.displayName, topTracks };
