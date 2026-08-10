@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { CrowdFavoriteQuestion } from '@spitster/shared';
 import { VENN_REGION_CENTROIDS } from './vennRegionCentroids.js';
+import { HARDCODED_VENN_LABEL_POSITIONS } from './vennPlayerLabelPositions.js';
 
 const musicPlayingGifUrl = new URL('../../../resources/images/music-playing.gif', import.meta.url).href;
 
@@ -16,6 +17,39 @@ const MAX_VENN_PLAYERS = 5;
 function getVennDiagramUrl(playerCount: number): string {
   const clamped = Math.min(Math.max(playerCount, MIN_VENN_PLAYERS), MAX_VENN_PLAYERS);
   return VENN_DIAGRAM_URLS[clamped];
+}
+
+// Player-index -> venn section color. Matches the fill colors baked into
+// the venn-diagram-N.svg assets (yellow/pink/blue/green/purple, in the
+// order the circles are drawn). This mapping is our best read of the
+// source SVGs — worth a manual visual check against each venn-diagram-N.svg
+// if a label's color ever looks like it doesn't match its circle.
+export const VENN_PLAYER_COLORS = ['#fefc92', '#fcc7fb', '#6abbdf', '#7ccb7f', '#c295d7'];
+
+function getVennPlayerColor(index: number): string {
+  return VENN_PLAYER_COLORS[index % VENN_PLAYER_COLORS.length];
+}
+
+// Places one label per player in a regular N-agon around the venn diagram.
+// Coordinates are in the same 0..1 relative space the dots use (see
+// VennPoint below), but intentionally pushed outside the 0..1 box — the
+// overlay isn't clipped, so labels land just outside the circle ring.
+// Starts at the top and goes clockwise so the layout reads naturally.
+const DEFAULT_LABEL_RADIUS = 0.6;
+const DEFAULT_LABEL_START_ANGLE = -Math.PI / 2;
+
+function getVennPlayerLabelPosition(index: number, total: number): VennPoint {
+  if (HARDCODED_VENN_LABEL_POSITIONS[total]) {
+    const pos = HARDCODED_VENN_LABEL_POSITIONS[total][index % total];
+    return { x: pos.x, y: pos.y };
+  }
+
+  if (total <= 0) return { x: 0.5, y: 0.5 };
+  const angle = DEFAULT_LABEL_START_ANGLE + (index / total) * Math.PI * 2;
+  return {
+    x: 0.5 + Math.cos(angle) * DEFAULT_LABEL_RADIUS,
+    y: 0.5 + Math.sin(angle) * DEFAULT_LABEL_RADIUS,
+  };
 }
 
 // Now owned by QuizPage (which doesn't unmount across "Next question"),
@@ -184,6 +218,27 @@ export function CrowdFavoriteQuestionView({
             src={getVennDiagramUrl(question.options.length)}
             alt={`Venn diagram for ${question.options.length} players`}
           />
+
+          <div className="venn-player-labels-overlay">
+            {question.options.map((option, index) => {
+              const position = getVennPlayerLabelPosition(index, question.options.length);
+              const color = getVennPlayerColor(index);
+
+              return (
+                <div
+                  key={option.spotifyUserId}
+                  className="venn-player-label"
+                  style={{
+                    left: `${position.x * 100}%`,
+                    top: `${position.y * 100}%`,
+                    color,
+                  }}
+                >
+                  {option.displayName ?? option.spotifyUserId}
+                </div>
+              );
+            })}
+          </div>
 
           <div className="venn-dots-overlay">
             {dots.map((dot, index) => {

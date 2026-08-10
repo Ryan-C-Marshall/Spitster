@@ -10,11 +10,20 @@
 //   3. Sample a dense grid of points across the canvas. For each point,
 //      compute the bitmask of which player-shapes contain it, and
 //      accumulate running sums per bitmask.
-//   4. Centroid = mean of all sample points belonging to that bitmask.
-//      If the naive centroid isn't actually inside the region (possible
-//      for concave/irregular regions), snap to the nearest sample point
-//      that is inside it.
-//   5. Emit a TS constants file keyed the same way the app already keys
+//   4. EROSION STEP: for every sample point that landed in a region, also
+//      compute its distance to the nearest shape boundary edge (across all
+//      shapes, not just the ones forming this region - a region's border is
+//      always the edge of *some* shape, whether that shape is a member of
+//      the region or an adjacent one clipping it). Points closer than
+//      ERODE_MARGIN_PX to any shape boundary are "border" points and get
+//      filtered out before we pick centroids / emit sample points. This is
+//      what keeps dots from spawning right on a region seam where it's
+//      ambiguous which region they belong to.
+//   5. Centroid = mean of the eroded (interior-only) sample points for that
+//      bitmask. If the naive centroid isn't actually inside the region
+//      (possible for concave/irregular regions), snap to the nearest
+//      eroded sample point that is inside it.
+//   6. Emit a TS constants file keyed the same way the app already keys
 //      regions: sorted player indices joined by '-' (see
 //      getDotRegionKey in CrowdFavouriteQuestion.tsx).
 
@@ -37,6 +46,27 @@ const OUTPUT_JSON_PATH = path.join(__dirname, 'out', 'venn-regions.json'); // de
 const VIEW_BOX = { width: 960, height: 720 };
 const GRID_STEP = 1; // px, in viewBox units -> 691,200 sample points per diagram
 const CURVE_SEGMENTS = 24; // bezier flattening resolution per cubic segment
+
+// --- Border erosion ---
+// Minimum distance (in viewBox px) a sample point must be from *any* shape
+// boundary edge to be considered "safe" (i.e. unambiguously inside one
+// region, not straddling a seam). 960px wide canvas, so 22px is a little
+// over 2% of the diagram width - enough to be visually obvious, small
+// enough that thin sliver regions (e.g. the innermost overlap in the
+// 5-player diagram) still retain usable interior points.
+const ERODE_MARGIN_PX = 15;
+// If the primary margin erodes a region down to nothing (can happen for
+// genuinely thin sliver regions), retry with progressively smaller margins
+// rather than falling back straight to unfiltered/border points.
+const FALLBACK_MARGINS_PX = [ERODE_MARGIN_PX, 14, 8, 4, 1, 0];
+// Below this many surviving points for a margin, try the next smaller one.
+const MIN_SAFE_POINTS = 25;
+// Upper bound used for bbox-based pruning when computing boundary distance.
+// Must be >= the largest value in FALLBACK_MARGINS_PX. Points whose
+// expanded bbox check rules out a shape are guaranteed to be farther than
+// this from that shape's boundary, so it's safe to skip exact distance
+// computation for them.
+const PRUNE_MARGIN_PX = 40;
 
 // When emitting the per-region sample point lists, keep the arrays bounded
 // so the generated TS file doesn't explode in size. This caps the number of
@@ -239,6 +269,63 @@ function pointInPolygon(px, py, polygon) {
   return inside;
 }
 
+// ---------- Point-to-boundary distance ----------
+
+function distToSegmentSquared(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) {
+    const ddx = px - ax;
+    const ddy = py - ay;
+    return ddx * ddx + ddy * ddy;
+  }
+  let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+  const ddx = px - cx;
+  const ddy = py - cy;
+  return ddx * ddx + ddy * ddy;
+}
+
+// Minimum distance from (px, py) to the polygon's boundary (its edges, not
+// its fill) - i.e. how far the point is from the nearest edge of this shape,
+// regardless of whether the point is inside or outside it.
+function distanceToPolygonBoundary(px, py, polygon) {
+  let bestSq = Infinity;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+    const dSq = distToSegmentSquared(px, py, polygon[j].x, polygon[j].y, polygon[i].x, polygon[i].y);
+    if (dSq < bestSq) bestSq = dSq;
+  }
+  return Math.sqrt(bestSq);
+}
+
+// Distance from (px, py) to the nearest boundary edge across *all* shapes.
+// A region's border is always the edge of some shape - either a member
+// shape's own edge, or a non-member shape's edge clipping into it - so this
+// single distance is what determines how "deep" inside its region a point
+// really is. Uses expanded-bbox pruning to skip far-away shapes cheaply;
+// values >= PRUNE_MARGIN_PX are clamped since we only ever compare against
+// margins <= PRUNE_MARGIN_PX.
+function minBoundaryDistanceAllShapes(px, py, shapes) {
+  let best = PRUNE_MARGIN_PX;
+  for (const shape of shapes) {
+    const { bbox, polygon } = shape;
+    if (
+      px < bbox.minX - PRUNE_MARGIN_PX ||
+      px > bbox.maxX + PRUNE_MARGIN_PX ||
+      py < bbox.minY - PRUNE_MARGIN_PX ||
+      py > bbox.maxY + PRUNE_MARGIN_PX
+    ) {
+      continue; // guaranteed farther than PRUNE_MARGIN_PX from this shape's boundary
+    }
+    const d = distanceToPolygonBoundary(px, py, polygon);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
 // ---------- Sampling ----------
 
 function regionKeyFromIndices(indices) {
@@ -246,10 +333,9 @@ function regionKeyFromIndices(indices) {
 }
 
 function sampleDiagram(shapes) {
-  // Precompute per-shape bbox for a cheap reject before the full point-in-polygon test.
   const shapeCount = shapes.length;
 
-  // bucket key -> { sumX, sumY, count }
+  // bucket key -> { points: [{x, y, boundaryDist}] }
   const buckets = new Map();
 
   // Overall bbox we actually need to scan (union of shape bboxes, clamped to canvas).
@@ -284,23 +370,40 @@ function sampleDiagram(shapes) {
       const key = regionKeyFromIndices(memberIndices);
       let bucket = buckets.get(key);
       if (!bucket) {
-        bucket = { sumX: 0, sumY: 0, count: 0, points: [] };
+        bucket = { points: [] };
         buckets.set(key, bucket);
       }
-      bucket.sumX += x;
-      bucket.sumY += y;
-      bucket.count += 1;
-      bucket.points.push({ x, y });
+
+      const boundaryDist = minBoundaryDistanceAllShapes(x, y, shapes);
+      bucket.points.push({ x, y, boundaryDist });
     }
   }
 
   return { buckets, pointsTested };
 }
 
+// Picks the interior (border-eroded) point set for a bucket, trying
+// progressively smaller margins if the strictest one leaves too few points
+// (this happens for genuinely thin sliver regions, e.g. the innermost
+// overlap of the 5-player diagram).
+function pickInteriorPoints(bucket) {
+  for (const margin of FALLBACK_MARGINS_PX) {
+    const filtered = bucket.points.filter((p) => p.boundaryDist >= margin);
+    if (filtered.length >= MIN_SAFE_POINTS || margin === FALLBACK_MARGINS_PX[FALLBACK_MARGINS_PX.length - 1]) {
+      return { points: filtered, marginUsed: margin };
+    }
+  }
+  // Unreachable (last margin is 0, which keeps everything), but keep a
+  // sane fallback just in case.
+  return { points: bucket.points, marginUsed: 0 };
+}
+
 // Naive centroid can fall outside an irregular/concave region; snap to the
 // nearest actual sample point belonging to that region if so.
-function resolveCentroid(bucket, shapes, memberIndices, nonMemberIndices) {
-  const naive = { x: bucket.sumX / bucket.count, y: bucket.sumY / bucket.count };
+function resolveCentroid(points, shapes, memberIndices, nonMemberIndices) {
+  const sumX = points.reduce((acc, p) => acc + p.x, 0);
+  const sumY = points.reduce((acc, p) => acc + p.y, 0);
+  const naive = { x: sumX / points.length, y: sumY / points.length };
 
   const isValid = (pt) => {
     for (const i of memberIndices) {
@@ -314,12 +417,17 @@ function resolveCentroid(bucket, shapes, memberIndices, nonMemberIndices) {
 
   if (isValid(naive)) return naive;
 
-  let best = bucket.points[0];
-  let bestDist = Infinity;
-  for (const p of bucket.points) {
-    const d = (p.x - naive.x) ** 2 + (p.y - naive.y) ** 2;
-    if (d < bestDist) {
-      bestDist = d;
+  // Prefer snapping to the point deepest inside the region (largest
+  // boundaryDist) among the closest few, rather than purely nearest to the
+  // (possibly invalid) naive centroid - keeps the centroid itself away from
+  // borders too.
+  let best = points[0];
+  let bestScore = -Infinity;
+  for (const p of points) {
+    const dSq = (p.x - naive.x) ** 2 + (p.y - naive.y) ** 2;
+    const score = p.boundaryDist - Math.sqrt(dSq) * 0.05; // mild distance-to-naive tiebreak
+    if (score > bestScore) {
+      bestScore = score;
       best = p;
     }
   }
@@ -348,11 +456,13 @@ function processDiagram(playerCount, fileName) {
     const memberIndices = key.split('-').map(Number);
     const allIndices = shapes.map((_, i) => i);
     const nonMemberIndices = allIndices.filter((i) => !memberIndices.includes(i));
-    const centroid = resolveCentroid(bucket, shapes, memberIndices, nonMemberIndices);
 
-    // Downsample the raw bucket.points deterministically so emitted files stay
+    const { points: interiorPoints, marginUsed } = pickInteriorPoints(bucket);
+    const centroid = resolveCentroid(interiorPoints, shapes, memberIndices, nonMemberIndices);
+
+    // Downsample the eroded point set deterministically so emitted files stay
     // reasonably sized. Use a stride to pick roughly evenly-spaced points.
-    let rawPoints = bucket.points;
+    let rawPoints = interiorPoints;
     if (MAX_SAMPLES_PER_REGION && rawPoints.length > MAX_SAMPLES_PER_REGION) {
       const stride = Math.floor(rawPoints.length / MAX_SAMPLES_PER_REGION);
       const sampled = [];
@@ -360,11 +470,22 @@ function processDiagram(playerCount, fileName) {
       rawPoints = sampled.slice(0, MAX_SAMPLES_PER_REGION);
     }
 
+    if (marginUsed < ERODE_MARGIN_PX) {
+      console.log(
+        `  region ${key}: too thin for ${ERODE_MARGIN_PX}px margin, fell back to ${marginUsed}px ` +
+          `(${bucket.points.length} raw -> ${interiorPoints.length} interior points)`,
+      );
+    }
+
     regions[key] = {
       x: Number((centroid.x / VIEW_BOX.width).toFixed(4)),
       y: Number((centroid.y / VIEW_BOX.height).toFixed(4)),
-      sampleCount: bucket.count,
+      sampleCount: bucket.points.length,
+      interiorCount: interiorPoints.length,
+      marginUsed,
       // samplePoints are fractional [0..1] coordinates for use at runtime.
+      // These are already border-eroded, so any point picked from this list
+      // at random is safely inside the region.
       samplePoints: rawPoints.map((p) => ({ x: Number((p.x / VIEW_BOX.width).toFixed(4)), y: Number((p.y / VIEW_BOX.height).toFixed(4)) })),
     };
   }
@@ -398,8 +519,9 @@ function main() {
 
   mkdirSync(path.dirname(OUTPUT_JSON_PATH), { recursive: true });
 
-  // Raw JSON (includes sampleCount, useful for sanity-checking region size / noise).
-  // Debug-only - not read by the app, no need to commit it.
+  // Raw JSON (includes sampleCount/interiorCount/marginUsed, useful for
+  // sanity-checking region size / erosion behavior). Debug-only - not read
+  // by the app, no need to commit it.
   writeFileSync(OUTPUT_JSON_PATH, JSON.stringify(output, null, 2));
 
   // Clean TS constants file ready to drop into the app. Keys match
@@ -414,6 +536,8 @@ function main() {
   tsLines.push('}');
   tsLines.push('');
   tsLines.push('// playerCount -> regionKey ("sorted-player-indices-joined-by-dash") -> fractional centroid');
+  tsLines.push('// samplePoints are pre-filtered to stay clear of region borders (see ERODE_MARGIN_PX');
+  tsLines.push('// in extractVennRegions.mjs), so any point picked from the list is safely interior.');
   tsLines.push('export const VENN_REGION_CENTROIDS: Record<number, Record<string, VennRegionCentroid>> = {');
   for (const [playerCount, regions] of Object.entries(output)) {
     tsLines.push(`  ${playerCount}: {`);
@@ -421,7 +545,10 @@ function main() {
       const pts = (region.samplePoints || [])
         .map((p) => `{ x: ${p.x}, y: ${p.y} }`)
         .join(', ');
-      tsLines.push(`    '${key}': { x: ${region.x}, y: ${region.y}, samplePoints: [ ${pts} ] }, // ${region.sampleCount} samples`);
+      tsLines.push(
+        `    '${key}': { x: ${region.x}, y: ${region.y}, samplePoints: [ ${pts} ] }, ` +
+          `// ${region.interiorCount}/${region.sampleCount} interior samples (margin ${region.marginUsed}px)`,
+      );
     }
     tsLines.push('  },');
   }
