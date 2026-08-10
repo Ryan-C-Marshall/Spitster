@@ -13,7 +13,7 @@ import { parseGameMode as parseQuizMode } from './quizMode.js';
 const homeIconUrl = new URL('../../resources/images/home-symbol.svg', import.meta.url).href;
 const forwardIconUrl = new URL('../../resources/images/forward-arrow-symbol.svg', import.meta.url).href;
 
-const DEFAULT_REVEAL_DELAY_MS = 20_000;
+const DEFAULT_REVEAL_DELAY_MS = 10_000;
 const CROWD_FAVORITE_DOT_ANIMATION_MS = 1_000;
 
 // Override the reveal delay for specific question types here; anything not
@@ -22,8 +22,8 @@ const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
   'whose-top-track': 7_000,
   'guess-the-playlist': 12_000,
   'artist-rank': 10_000,
-  'name-the-title': 20_000,
-  'name-the-artist': 20_000,
+  'name-the-title': 10_000,
+  'name-the-artist': 10_000,
   'crowd-favorite': 7_000,
 };
 

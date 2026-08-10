@@ -274,6 +274,63 @@ export async function fetchPlaylistTracks(input: {
   return tracks;
 }
 
+type SpotifySearchPlaylistItemResponse = {
+  id: string;
+  name: string;
+  owner: {
+    id: string;
+    display_name: string | null;
+  };
+} | null; // Spotify's search response pads with `null` entries in some cases.
+
+type SpotifySearchPlaylistsResponse = {
+  // `playlists` itself can be entirely absent/null for a query with no
+  // playlist matches, distinct from `items: []`.
+  playlists: {
+    items: SpotifySearchPlaylistItemResponse[];
+  } | null;
+};
+
+export interface SpotifyPlaylistSearchResult {
+  id: string;
+  name: string;
+  ownerId: string;
+  ownerDisplayName: string | null;
+}
+
+// Searches the catalog for playlists by name (e.g. to locate a user's
+// Spotify-generated "Your Top Songs [year]" playlist, which — being
+// Spotify-owned rather than user-owned — never shows up in
+// `fetchOwnedPlaylists`). This is the general Search endpoint, not the
+// Nov 2024-restricted "Featured Playlists" / "Category Playlists" browse
+// endpoints, so it remains available in development-mode apps. However,
+// actually reading an algorithmic/Spotify-owned playlist's tracks
+// afterwards (via `fetchPlaylistTracks`) is subject to that restriction —
+// see the comment on `fetchTopSongsPlaylistTracks` in crowdFavourite.ts.
+export async function searchPlaylists(input: {
+  account: SpotifyConnectedAccount;
+  apiBaseUrl: string;
+  query: string;
+  limit?: number;
+}): Promise<SpotifyPlaylistSearchResult[]> {
+  const limit = input.limit ?? 10;
+
+  const page = await fetchJson<SpotifySearchPlaylistsResponse>(
+    `${input.apiBaseUrl}/search?q=${encodeURIComponent(input.query)}&type=playlist&limit=${limit}`,
+    input.account.tokens.accessToken,
+  );
+
+  const items = page.playlists?.items ?? [];
+
+  return items
+    .filter((item): item is NonNullable<SpotifySearchPlaylistItemResponse> => item !== null && !!item.owner)
+    .map((item) => ({
+      id: item.id,
+      name: item.name,
+      ownerId: item.owner.id,
+      ownerDisplayName: item.owner.display_name,
+    }));
+}
 
 // Playback API
 export async function playTrack(input: {

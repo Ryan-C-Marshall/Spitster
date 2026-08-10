@@ -3,15 +3,62 @@ import { randomUUID } from 'node:crypto';
 import type { CrowdFavoriteQuestion, SpotifyConnectedAccount, SpotifyTrackSummary } from '@spitster/shared';
 
 import { getEnv } from '../../../config/env.js';
-import { fetchUsersTopTracks } from '../../spotify/spotifyWebApi.service.js';
+import {
+  fetchPlaylistTracks,
+  fetchUsersTopTracks,
+  searchPlaylists,
+} from '../../spotify/spotifyWebApi.service.js';
 import { getOrFetchSpotifyData } from '../../spotify/spotifyDataCache.service.js';
 import { trackSignature } from './trackSignature.js';
 import type { QuestionGenerator } from '../quizGenerator.service.js';
 
 const MIN_PLAYERS = 2;
 
-const TOP_TRACKS_LIMIT = 1000;
-const TOP_TRACKS_TIME_RANGE = 'medium_term' as const;
+// ---------------------------------------------------------------------------
+// Track source configuration
+//
+// Where Crowd Favourite draws each player's "song pool" from is controlled
+// by CROWD_FAVORITE_SOURCE below. Two options:
+//
+//  - 'top-tracks': the classic behaviour — a player's Spotify "Top Tracks"
+//    for a given time_range (Spotify's own rolling taste ranking).
+//  - 'top-songs-playlist': the Spotify-generated "Your Top Songs [year]"
+//    playlist (the one that appears in-app labelled "Made for [Name]").
+//    This is a fixed, dated snapshot (~100 songs) rather than a rolling
+//    ranking, and — because it's a Spotify-owned playlist rather than one
+//    owned by the user — it has to be located via search rather than via
+//    the user's own playlist list. See the big comment on
+//    fetchTopSongsPlaylistTracks below for an important caveat about
+//    whether this actually works for this app.
+//
+// Change `kind` (and the fields alongside it) to switch sources; nothing
+// else in this file needs to change.
+// ---------------------------------------------------------------------------
+type CrowdFavoriteSourceConfig =
+  | {
+      kind: 'top-tracks';
+      /** Spotify's own ranking window for "top" tracks. */
+      timeRange: 'short_term' | 'medium_term' | 'long_term';
+      /** How many tracks to pull per player (Spotify pages internally). */
+      limit: number;
+    }
+  | {
+      kind: 'top-songs-playlist';
+      /** How many tracks to pull from the playlist (it's usually ~100 long). */
+      limit: number;
+      /**
+       * Which year's "Your Top Songs" playlist to use. Leave unset to
+       * auto-detect the most recently published one (see
+       * guessTopSongsPlaylistYears below).
+       */
+      year?: number;
+    };
+
+const CROWD_FAVORITE_SOURCE: CrowdFavoriteSourceConfig = {
+  kind: 'top-tracks',
+  timeRange: 'medium_term',
+  limit: 1000,
+};
 
 interface PlayerTopTracks {
   spotifyUserId: string;
@@ -20,22 +67,148 @@ interface PlayerTopTracks {
 }
 
 async function fetchTopTracksForAccount(account: SpotifyConnectedAccount): Promise<PlayerTopTracks> {
+  const topTracks =
+    CROWD_FAVORITE_SOURCE.kind === 'top-tracks'
+      ? await fetchFromTopTracks(account, CROWD_FAVORITE_SOURCE)
+      : await fetchFromTopSongsPlaylist(account, CROWD_FAVORITE_SOURCE);
+
+  console.log('Fetched', topTracks.length, 'tracks for Spotify user', account.spotifyUserId, '(limit requested:', CROWD_FAVORITE_SOURCE.limit, ')');
+  // output all tracks fetched (one line per track) without truncation (with the track's position in the list)
+  topTracks.forEach((track, index) => console.log(account.displayName || account.spotifyUserId, ` - `, index + 1, ` ${track.name} (${track.artists.map((a) => a.name).join(', ')})`));
+
+  return { spotifyUserId: account.spotifyUserId, displayName: account.displayName, topTracks };
+}
+
+async function fetchFromTopTracks(
+  account: SpotifyConnectedAccount,
+  source: Extract<CrowdFavoriteSourceConfig, { kind: 'top-tracks' }>,
+): Promise<SpotifyTrackSummary[]> {
   const env = getEnv();
 
-  const topTracks = await getOrFetchSpotifyData({
+  return getOrFetchSpotifyData({
     spotifyUserId: account.spotifyUserId,
     dataKind: 'topTracks',
-    params: { timeRange: TOP_TRACKS_TIME_RANGE, limit: TOP_TRACKS_LIMIT },
+    params: { timeRange: source.timeRange, limit: source.limit },
     fetcher: () =>
       fetchUsersTopTracks({
         account,
         apiBaseUrl: env.spotifyApiBaseUrl,
-        limit: TOP_TRACKS_LIMIT,
-        timeRange: TOP_TRACKS_TIME_RANGE,
+        limit: source.limit,
+        timeRange: source.timeRange,
       }),
   });
+}
 
-  return { spotifyUserId: account.spotifyUserId, displayName: account.displayName, topTracks };
+// Wrapped-style "Your Top Songs [year]" playlists are typically published
+// in early December, summarizing that same calendar year. Before that
+// year's release, the most recent one available is last year's — so we try
+// the "most likely" year first and step backwards a couple of years as a
+// fallback (covers being asked right around the December cutover, and
+// players who don't have a playlist for the most recent year for whatever
+// reason).
+const WRAPPED_RELEASE_MONTH_INDEX = 11; // December, 0-indexed
+const YEARS_TO_TRY = 3;
+
+function guessTopSongsPlaylistYears(explicitYear?: number): number[] {
+  if (explicitYear) return [explicitYear];
+
+  const now = new Date();
+  const mostLikelyYear =
+    now.getUTCMonth() >= WRAPPED_RELEASE_MONTH_INDEX ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+
+  return Array.from({ length: YEARS_TO_TRY }, (_, i) => mostLikelyYear - i);
+}
+
+// The "Your Top Songs [year]" playlist a user sees in-app (labelled "Made
+// for [Name]") is owned by Spotify, not by the user — so it never appears
+// in `fetchOwnedPlaylists`/`/me/playlists`, whether or not the user has
+// saved it to their library. The only way to locate it is by searching for
+// it by name and picking the result actually owned by Spotify.
+//
+// IMPORTANT CAVEAT: as of Spotify's Nov 27, 2024 Web API policy change,
+// apps in Development Mode (the default for small/personal apps, and
+// effectively the only option for indie projects since extended-quota
+// access now requires an organization with 250k+ monthly active users)
+// lose access to "Algorithmic and Spotify-owned editorial playlists" —
+// which explicitly includes things like this one. In practice that means
+// fetching this playlist's tracks (the fetchPlaylistTracks call below) may
+// simply 403/404 for every account, regardless of search succeeding. If
+// Spitster's Spotify app is still in Development Mode, this source will
+// most likely come back empty for everyone. It's implemented here so it's
+// ready to go if that ever changes (or if this app has/gets extended
+// access) — but it's worth testing directly before relying on it.
+async function fetchFromTopSongsPlaylist(
+  account: SpotifyConnectedAccount,
+  source: Extract<CrowdFavoriteSourceConfig, { kind: 'top-songs-playlist' }>,
+): Promise<SpotifyTrackSummary[]> {
+  const env = getEnv();
+  const candidateYears = guessTopSongsPlaylistYears(source.year);
+
+  return getOrFetchSpotifyData({
+    spotifyUserId: account.spotifyUserId,
+    dataKind: 'topSongsPlaylistTracks',
+    params: { years: candidateYears.join(','), limit: source.limit },
+    fetcher: async () => {
+      for (const year of candidateYears) {
+        try {
+          const playlist = await findTopSongsPlaylist(account, env.spotifyApiBaseUrl, year);
+          if (!playlist) {
+            console.log(
+              `No "Your Top Songs ${year}" playlist found via search for Spotify user ${account.spotifyUserId}`,
+            );
+            continue;
+          }
+
+          const tracks = await fetchPlaylistTracks({
+            account,
+            apiBaseUrl: env.spotifyApiBaseUrl,
+            playlistId: playlist.id,
+            limit: source.limit,
+          });
+
+          if (tracks.length > 0) {
+            console.log(
+              `Fetched ${tracks.length} tracks from "${playlist.name}" (${year}) for Spotify user ${account.spotifyUserId}`,
+            );
+            return tracks;
+          }
+        } catch (error) {
+          // Most likely cause: this app doesn't have API access to
+          // Spotify-owned/algorithmic playlists (see the caveat above).
+          // Don't let one player's failure break question generation for
+          // everyone — just treat this player as having no tracks from
+          // this source, same as if they had none.
+          console.warn(
+            `Failed to fetch "Your Top Songs ${year}" playlist tracks for Spotify user ${account.spotifyUserId} — likely blocked by Spotify's restrictions on Development Mode access to Spotify-owned playlists. Error:`,
+            error,
+          );
+        }
+      }
+
+      return [];
+    },
+  });
+}
+
+async function findTopSongsPlaylist(
+  account: SpotifyConnectedAccount,
+  apiBaseUrl: string,
+  year: number,
+): Promise<{ id: string; name: string } | null> {
+  const results = await searchPlaylists({
+    account,
+    apiBaseUrl,
+    query: `Your Top Songs ${year}`,
+    limit: 10,
+  });
+
+  // Only trust results actually owned by Spotify's own editorial account —
+  // otherwise a fan-made playlist with a similar name could slip through.
+  const match = results.find(
+    (playlist) => playlist.ownerId.toLowerCase() === 'spotify' && playlist.name.includes(String(year)),
+  );
+
+  return match ? { id: match.id, name: match.name } : null;
 }
 
 function binomialCoefficient(n: number, k: number): number {
