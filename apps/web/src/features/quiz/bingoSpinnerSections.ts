@@ -24,6 +24,7 @@ const guessThePlaylistIconUrl = new URL('../../resources/images/playlist.png', i
 const artistRankIconUrl = new URL('../../resources/images/artists.png', import.meta.url).href;
 const nameTheTitleIconUrl = new URL('../../resources/images/waveform.png', import.meta.url).href;
 const nameTheArtistIconUrl = new URL('../../resources/images/singer-solo.png', import.meta.url).href;
+const offTheChartIconUrl = new URL('../../resources/images/billboard-logo.png', import.meta.url).href;
 
 export const BINGO_QUESTION_CATALOG: BingoQuestionCatalogEntry[] = [
   { type: 'whose-top-track', label: 'Whose Top Track', iconUrl: whoseTopTrackIconUrl },
@@ -31,6 +32,7 @@ export const BINGO_QUESTION_CATALOG: BingoQuestionCatalogEntry[] = [
   { type: 'artist-rank', label: 'Artist Rank', iconUrl: artistRankIconUrl },
   { type: 'name-the-title', label: 'Name the Title', iconUrl: nameTheTitleIconUrl },
   { type: 'name-the-artist', label: 'Name the Artist', iconUrl: nameTheArtistIconUrl },
+  { type: 'off-the-chart', label: 'Off the Chart', iconUrl: offTheChartIconUrl },
 ];
 
 /** Every bingo question type, active by default (settings default / first

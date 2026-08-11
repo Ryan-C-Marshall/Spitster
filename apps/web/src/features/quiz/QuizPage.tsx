@@ -26,6 +26,7 @@ const REVEAL_DELAY_MS_BY_TYPE: Partial<Record<Question['type'], number>> = {
   'name-the-title': 10_000,
   'name-the-artist': 10_000,
   'crowd-favorite': 7_000,
+  'off-the-chart': 12_000,
 };
 
 function getRevealDelayMs(question: Question | null): number {
@@ -36,7 +37,11 @@ function getRevealDelayMs(question: Question | null): number {
 // Question types that don't play a track. Playback volume drops to
 // lobby-level while one of these is showing, so a track left over from the
 // previous question doesn't keep blaring under a silent question type.
-const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank']);
+// 'off-the-chart' joins this list too even though it does have playable
+// songs — nothing autoplays for it, so it should start quiet just like a
+// fully silent type; OffTheChartQuestion.tsx un-mutes as soon as a card is
+// actually clicked.
+const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank', 'off-the-chart']);
 
 export function QuizPage() {
   const { mode: modeParam } = useParams<{ mode?: string }>();

@@ -5,6 +5,7 @@ import { GuessThePlaylistQuestionView } from './questionTypes/GuessThePlaylistQu
 import { ArtistRankQuestionView } from './questionTypes/ArtistRankQuestion.js';
 import { NameTheSongQuestionView } from './questionTypes/NameTheSongQuestion.js';
 import { CrowdFavoriteQuestionView, type CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
+import { OffTheChartQuestionView } from './questionTypes/OffTheChartQuestion.js';
 
 export function QuestionView({
   question,
@@ -36,6 +37,8 @@ export function QuestionView({
           onDotRevealed={onCrowdFavoriteDotRevealed}
         />
       );
+    case 'off-the-chart':
+      return <OffTheChartQuestionView question={question} revealed={revealed} />;
     default: {
       // @ts-ignore
       const _exhaustive: never = question;

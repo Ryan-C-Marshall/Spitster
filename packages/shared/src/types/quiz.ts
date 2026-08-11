@@ -14,7 +14,8 @@ export type QuestionType =
   | 'artist-rank'
   | 'name-the-title'
   | 'name-the-artist'
-  | 'crowd-favorite';
+  | 'crowd-favorite'
+  | 'off-the-chart';
 
 /**
  * 'bingo' serves a random mix of every question type except 'crowd-favorite'.
@@ -136,10 +137,28 @@ export interface CrowdFavoriteQuestion extends BaseQuestion {
   correctSpotifyUserIds: string[];
 }
 
+/**
+ * "Off the Chart" — samples one connected player's top 100 and top 500
+ * songs over the last 4 weeks. Three of the four song options come from
+ * their top 100; one comes from outside it (ranked 101-500). The odd one
+ * out — the song NOT in their top 100 — is the correct answer. Unlike most
+ * other question types, its answer history is scoped per-player rather
+ * than shared globally, since a song being burned for one player shouldn't
+ * stop it from being offered for another — see offTheChart.ts.
+ */
+export interface OffTheChartQuestion extends BaseQuestion {
+  type: 'off-the-chart';
+  spotifyUserId: string;
+  displayName: string | null;
+  options: SpotifyTrackSummary[]; // exactly 4, shuffled
+  correctTrackId: string;
+}
+
 export type Question =
   | WhoseTopTrackQuestion
   | GuessThePlaylistQuestion
   | ArtistRankQuestion
   | NameTheTitleQuestion
   | NameTheArtistQuestion
-  | CrowdFavoriteQuestion;
+  | CrowdFavoriteQuestion
+  | OffTheChartQuestion;
