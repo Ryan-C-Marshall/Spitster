@@ -23,6 +23,19 @@ export type QuestionType =
  */
 export type GameMode = 'bingo' | 'classic';
 
+/**
+ * Controls which pool of each player's top tracks classic mode's
+ * crowd-favorite generator samples from — see crowdFavourite.ts. Sent by
+ * the client with each classic-mode question request (see quiz.routes.ts);
+ * falls back to the generator's own defaults when omitted.
+ */
+export interface ClassicInputSourceOptions {
+  timeRange: 'short_term' | 'medium_term' | 'long_term';
+  /** How many of the player's top tracks (per the time range above) to
+   * pull from Spotify and sample from. */
+  limit: number;
+}
+
 export interface BaseQuestion {
   id: string;
   type: QuestionType;

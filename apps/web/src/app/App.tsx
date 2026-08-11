@@ -4,6 +4,7 @@ import { AuthCallbackPage } from '../features/auth/AuthCallbackPage.js';
 import { HomePage } from '../features/home/HomePage.js';
 import { QuizPage } from '../features/quiz/QuizPage.js';
 import { PlayerProvider } from '../features/player/PlayerContext.js';
+import { SettingsProvider } from '../features/settings/SettingsContext.js';
 import { GAME_MODE_LABELS, getGameModeFromPathname } from '../features/quiz/quizMode.js';
 import { BingoWordmark } from '../features/quiz/BingoWordmark.js';
 // Dev-only harness for the venn player-name labels — see VennLabelsDevPage
@@ -33,17 +34,19 @@ export function App() {
       </header>
 
       <main className="main">
-        <PlayerProvider>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="/quiz/:mode" element={<QuizPage />} />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            {import.meta.env.DEV ? (
-              <Route path="/dev/venn-labels" element={<VennLabelsDevPage />} />
-            ) : null}
-          </Routes>
-        </PlayerProvider>
+        <SettingsProvider>
+          <PlayerProvider>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/quiz/:mode" element={<QuizPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              {import.meta.env.DEV ? (
+                <Route path="/dev/venn-labels" element={<VennLabelsDevPage />} />
+              ) : null}
+            </Routes>
+          </PlayerProvider>
+        </SettingsProvider>
       </main>
 
     </div>

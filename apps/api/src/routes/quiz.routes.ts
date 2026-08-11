@@ -2,13 +2,39 @@ import { Router } from 'express';
 
 import { requireSession } from '../middleware/requireSession.js';
 import { generateQuestion } from '../services/quiz/quizGenerator.service.js';
-import type { GameMode, QuestionType } from '@spitster/shared';
+import type { ClassicInputSourceOptions, GameMode, QuestionType } from '@spitster/shared';
 import { ensureFreshTokens, SpotifyReauthRequiredError } from '../services/spotify/tokenRefresh.service.js';
 
 export const quizRoutes = Router();
 
 const MIN_PLAYERS = 2;
 const GAME_MODES: GameMode[] = ['bingo', 'classic'];
+const CLASSIC_TIME_RANGES: ClassicInputSourceOptions['timeRange'][] = ['short_term', 'medium_term', 'long_term'];
+// Guards against a malformed/malicious limit turning into an enormous
+// number of paginated Spotify requests — see fetchUsersTopTracks.
+const MAX_CLASSIC_INPUT_SOURCE_LIMIT = 5000;
+
+// Validates the client-supplied sampling options for classic mode (see
+// ClassicInputSourceOptions); returns undefined for anything malformed so
+// the generator falls back to its own defaults rather than erroring out.
+function parseClassicInputSource(body: unknown): ClassicInputSourceOptions | undefined {
+  if (!body || typeof body !== 'object') return undefined;
+  const candidate = (body as Record<string, unknown>).classicInputSource;
+  if (!candidate || typeof candidate !== 'object') return undefined;
+
+  const { timeRange, limit } = candidate as Record<string, unknown>;
+  if (typeof timeRange !== 'string' || !CLASSIC_TIME_RANGES.includes(timeRange as ClassicInputSourceOptions['timeRange'])) {
+    return undefined;
+  }
+  if (typeof limit !== 'number' || !Number.isFinite(limit) || limit <= 0) {
+    return undefined;
+  }
+
+  return {
+    timeRange: timeRange as ClassicInputSourceOptions['timeRange'],
+    limit: Math.min(Math.floor(limit), MAX_CLASSIC_INPUT_SOURCE_LIMIT),
+  };
+}
 
 quizRoutes.post('/question', requireSession, async (request, response) => {
   const spotifySession = request.session.spotify;
@@ -31,8 +57,15 @@ quizRoutes.post('/question', requireSession, async (request, response) => {
     // an in-memory per-user cache — see spotifyDataCache.service.ts), and
     // only once it's actually being attempted.
     const requestedType = request.body?.type as QuestionType | undefined;
+    const classicInputSource = parseClassicInputSource(request.body);
     const answerHistoryStore = (request.session.quizHistory ??= {});
-    const question = await generateQuestion({ accounts, mode, type: requestedType, answerHistoryStore });
+    const question = await generateQuestion({
+      accounts,
+      mode,
+      type: requestedType,
+      answerHistoryStore,
+      classicInputSource,
+    });
 
     if (!question) {
       response.status(422).json({ error: 'Not enough player data to build a question yet' });

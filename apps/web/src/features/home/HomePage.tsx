@@ -5,6 +5,7 @@ import { fetchSession } from '../../lib/apiClient.js';
 import type { GameMode, SpotifySessionSummary, SpotifyConnectedAccountSummary } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
 import { BingoWordmark } from '../quiz/BingoWordmark.js';
+import { SettingsPanel } from '../settings/SettingsPanel.js';
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export function HomePage() {
   const [pendingAutoPlayAccountId, setPendingAutoPlayAccountId] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const [gameMode, setGameMode] = useState<GameMode>('classic');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { play, isReady, currentTrackUri } = usePlayer();
 
   useEffect(() => {
@@ -93,6 +95,15 @@ export function HomePage() {
           <p>Connect each player’s Spotify account before starting the quiz.</p>
         </div>
         <div className="panel-actions">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Settings"
+            title="Settings"
+            onClick={() => setIsSettingsOpen(true)}
+          >
+            ⚙
+          </button>
           <div className="mode-toggle" role="radiogroup" aria-label="Game mode">
             <button
               type="button"
@@ -109,6 +120,7 @@ export function HomePage() {
               role="radio"
               aria-checked={gameMode === 'classic'}
               onClick={() => setGameMode('classic')}
+              style={{ minWidth: '5.5rem' }} // so that the other buttons don't shift when this one is selected
             >
               Classic
             </button>
@@ -156,6 +168,8 @@ export function HomePage() {
           })}
         </div>
       )}
+
+      {isSettingsOpen ? <SettingsPanel onClose={() => setIsSettingsOpen(false)} /> : null}
     </section>
   );
 }

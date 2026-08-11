@@ -79,7 +79,7 @@ export async function fetchUsersTopTracks(input: {
     }
   }
 
-  console.log(`Fetched ${tracks.length} top tracks for Spotify user ${input.account.spotifyUserId} (limit requested: ${totalLimit})`);
+  console.log(`Fetched ${tracks.length} top tracks for Spotify user ${input.account.spotifyUserId} over time range ${timeRange} (limit requested: ${totalLimit})`);
 
   return tracks;
 }

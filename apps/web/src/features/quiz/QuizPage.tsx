@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { fetchQuestion } from '../../lib/apiClient.js';
 import type { Question, QuestionType } from '@spitster/shared';
 import { usePlayer } from '../player/PlayerContext.js';
+import { useSettings } from '../settings/SettingsContext.js';
 import { BingoSpinner } from './BingoSpinner.js';
-import { BINGO_SPINNER_SECTIONS } from './bingoSpinnerSections.js';
+import { getBingoSpinnerSections } from './bingoSpinnerSections.js';
 import { QuestionView } from './QuestionView.js';
 import type { CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 import { parseGameMode as parseQuizMode } from './quizMode.js';
@@ -37,16 +38,18 @@ function getRevealDelayMs(question: Question | null): number {
 // previous question doesn't keep blaring under a silent question type.
 const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank']);
 
-// Looked up once the bingo spinner lands, so the chosen wedge's color can
-// persist onto the question page (border + title) below. Not relevant to
-// classic mode, which never shows the spinner.
-const BINGO_COLOR_BY_TYPE: Partial<Record<QuestionType, string>> = Object.fromEntries(
-  BINGO_SPINNER_SECTIONS.map((section) => [section.type, section.color]),
-);
-
 export function QuizPage() {
   const { mode: modeParam } = useParams<{ mode?: string }>();
   const gameMode = parseQuizMode(modeParam);
+  const { activeBingoTypes, classicInputSource } = useSettings();
+
+  // Recomputed whenever the active-bingo-types setting changes; drives both
+  // the spinner's wedges and the color lookup used once it lands (below).
+  const bingoSections = useMemo(() => getBingoSpinnerSections(activeBingoTypes), [activeBingoTypes]);
+  const bingoColorByType = useMemo<Partial<Record<QuestionType, string>>>(
+    () => Object.fromEntries(bingoSections.map((section) => [section.type, section.color])),
+    [bingoSections],
+  );
 
   const [question, setQuestion] = useState<Question | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -117,7 +120,11 @@ export function QuizPage() {
       setStatusMessage(null);
 
       try {
-        const nextQuestion = await fetchQuestion(gameMode, type);
+        const nextQuestion = await fetchQuestion(
+          gameMode,
+          type,
+          gameMode === 'classic' ? classicInputSource : undefined,
+        );
         if (requestId !== requestIdRef.current) {
           // A newer request has been made, so ignore this one.
           return;
@@ -134,7 +141,7 @@ export function QuizPage() {
         }
       }
     },
-    [gameMode],
+    [gameMode, classicInputSource],
   );
 
   // Called by the button/nav action to move on to the next question. In
@@ -155,10 +162,10 @@ export function QuizPage() {
 
   const handleSpinnerLanded = useCallback(
     (type: QuestionType) => {
-      setBingoQuestionColor(BINGO_COLOR_BY_TYPE[type] ?? null);
+      setBingoQuestionColor(bingoColorByType[type] ?? null);
       fetchAndShowQuestion(type);
     },
-    [fetchAndShowQuestion],
+    [fetchAndShowQuestion, bingoColorByType],
   );
 
   useEffect(() => {
@@ -253,7 +260,12 @@ export function QuizPage() {
         {statusMessage ? <div className="banner">{statusMessage}</div> : null}
 
         {showSpinner ? (
-          <BingoSpinner key={spinnerRound} onLanded={handleSpinnerLanded} isFetching={isLoading} />
+          <BingoSpinner
+            key={spinnerRound}
+            onLanded={handleSpinnerLanded}
+            isFetching={isLoading}
+            sections={bingoSections}
+          />
         ) : null}
 
         {!showSpinner && isLoading ? <p className="muted">Loading question...</p> : null}

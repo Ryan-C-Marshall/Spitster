@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { QuestionType } from '@spitster/shared';
 
-import { BINGO_SPINNER_SECTIONS } from './bingoSpinnerSections.js';
+import type { BingoSpinnerSection } from './bingoSpinnerSections.js';
 
 const discoBallUrl = new URL('../../resources/images/disco-ball.svg', import.meta.url).href;
 
@@ -89,10 +89,14 @@ function getHighlightVisual(phase: number, colors: string[], intensity: number) 
 interface BingoSpinnerProps {
   onLanded: (type: QuestionType) => void;
   isFetching: boolean;
+  // Which question types appear on the ring and in what order/colors —
+  // computed from the active-bingo-types setting by the caller (see
+  // getBingoSpinnerSections), so this component doesn't need to know
+  // anything about settings itself.
+  sections: BingoSpinnerSection[];
 }
 
-export function BingoSpinner({ onLanded, isFetching }: BingoSpinnerProps) {
-  const sections = BINGO_SPINNER_SECTIONS;
+export function BingoSpinner({ onLanded, isFetching, sections }: BingoSpinnerProps) {
   const sectionAngle = 360 / sections.length;
   const sectionColors = useMemo(() => sections.map((section) => section.color), [sections]);
 

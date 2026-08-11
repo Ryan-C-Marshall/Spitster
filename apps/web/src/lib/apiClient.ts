@@ -1,4 +1,4 @@
-import type { GameMode, Question, QuestionType, SpotifySessionSummary } from '@spitster/shared';
+import type { ClassicInputSourceOptions, GameMode, Question, QuestionType, SpotifySessionSummary } from '@spitster/shared';
 
 export async function fetchSession() {
   const response = await fetch('/auth/session', {
@@ -16,12 +16,16 @@ export async function fetchSession() {
   };
 }
 
-export async function fetchQuestion(mode: GameMode, type?: QuestionType): Promise<Question> {
+export async function fetchQuestion(
+  mode: GameMode,
+  type?: QuestionType,
+  classicInputSource?: ClassicInputSourceOptions,
+): Promise<Question> {
   const response = await fetch('/quiz/question', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode, type }),
+    body: JSON.stringify({ mode, type, classicInputSource }),
   });
 
   if (!response.ok) {

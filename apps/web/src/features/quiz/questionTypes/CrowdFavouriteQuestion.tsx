@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import type { CrowdFavoriteQuestion } from '@spitster/shared';
+import { useSettings } from '../../settings/SettingsContext.js';
+import { getClassicTimeRangeSubtitleLabel } from '../../settings/classicInputSourceOptions.js';
 import { VENN_REGION_CENTROIDS } from './vennRegionCentroids.js';
 import { HARDCODED_VENN_LABEL_POSITIONS } from './vennPlayerLabelPositions.js';
 
@@ -156,6 +158,8 @@ export function CrowdFavoriteQuestionView({
   dots: CrowdFavoriteDot[];
   onDotRevealed: (dot: CrowdFavoriteDot) => void;
 }) {
+  const { classicInputSource } = useSettings();
+
   useEffect(() => {
     if (!revealed) return;
     // Dedup against the dots the parent already has, rather than a local
@@ -194,6 +198,10 @@ export function CrowdFavoriteQuestionView({
       <div className="question-header">
         <div style={{ flex: 1, minWidth: 200 }}>
           <h2>Whose song is this?</h2>
+          <p className="question-subtitle">
+            Songs sampled from players' top-{classicInputSource.limit} over{' '}
+            {getClassicTimeRangeSubtitleLabel(classicInputSource.timeRange)}.
+          </p>
         </div>
 
         <div className={`lobby-card playing track-reveal-card crowd-favorite-track-reveal-card${revealed ? ' revealed' : ''}`}>

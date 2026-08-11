@@ -33,6 +33,17 @@ fi
 
 PARENT_DIR="$(dirname "$PROJECT_ROOT")"
 CHANGES_DIR="$PARENT_DIR/$CHANGES_DIR_NAME"
+CHANGES_ZIP="$PARENT_DIR/$CHANGES_DIR_NAME.zip"
+
+if [ ! -d "$CHANGES_DIR" ] && [ -f "$CHANGES_ZIP" ]; then
+    echo "Changes directory not found, but zip archive exists:"
+    echo "  $CHANGES_ZIP"
+    echo "Unzipping..."
+    unzip -q "$CHANGES_ZIP" -d "$PARENT_DIR"
+    rm -f "$CHANGES_ZIP"
+    echo "Removed archive."
+    echo
+fi
 
 if [ ! -d "$CHANGES_DIR" ]; then
     echo "Error: Changes directory not found:"

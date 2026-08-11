@@ -1,4 +1,10 @@
-import type { GameMode, Question, QuestionType, SpotifyConnectedAccount } from '@spitster/shared';
+import type {
+  ClassicInputSourceOptions,
+  GameMode,
+  Question,
+  QuestionType,
+  SpotifyConnectedAccount,
+} from '@spitster/shared';
 
 import { whoseTopTrackGenerator } from './questionTypes/whoseTopTrack.js';
 import { guessThePlaylistGenerator } from './questionTypes/guessThePlaylist.js';
@@ -28,7 +34,14 @@ export interface QuestionGenerator<T extends Question = Question> {
    * set explicitly to share a bucket with another generator (e.g. two
    * types that shouldn't repeat each other's answers either). */
   historyKey?: string;
-  generate(input: { accounts: SpotifyConnectedAccount[]; history: AnswerHistory }): Promise<T | null>;
+  generate(input: {
+    accounts: SpotifyConnectedAccount[];
+    history: AnswerHistory;
+    /** Classic mode's chosen sampling source (time range + track count).
+     * Only meaningful to classic-mode generators (currently just
+     * crowd-favorite) — bingo generators can safely ignore it. */
+    classicInputSource?: ClassicInputSourceOptions;
+  }): Promise<T | null>;
 }
 
 // Adding a question type: implement a generator in ./questionTypes and
@@ -47,6 +60,7 @@ export async function generateQuestion(input: {
   mode: GameMode;
   type?: QuestionType;
   answerHistoryStore: AnswerHistoryStore;
+  classicInputSource?: ClassicInputSourceOptions;
 }): Promise<Question | null> {
   const eligibleForMode = generators.filter((generator) =>
     input.mode === 'classic' ? generator.isClassicMode === true : generator.isClassicMode !== true,
@@ -58,7 +72,11 @@ export async function generateQuestion(input: {
 
   for (const generator of candidates) {
     const history = getAnswerHistoryBucket(input.answerHistoryStore, generator.historyKey ?? generator.type);
-    const question = await generator.generate({ accounts: input.accounts, history });
+    const question = await generator.generate({
+      accounts: input.accounts,
+      history,
+      classicInputSource: input.classicInputSource,
+    });
     if (question) {
       return question;
     }
