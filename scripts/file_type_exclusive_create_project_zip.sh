@@ -50,7 +50,7 @@ find "$OUTPUT_DIR" -maxdepth 1 -type f -name "$ZIP_PATTERN" -print -delete
 # --- Collect matching files and skipped extensions -------------------------
 FILES_TO_ZIP=""
 SKIPPED_EXTENSIONS=""
-SKIPPED_FILES="package-lock.json venn-regions.json vennRegionCentroids.ts"
+SKIPPED_FILES="package-lock.json venn-regions.json"
 
 echo "Scanning git-tracked files..."
 
