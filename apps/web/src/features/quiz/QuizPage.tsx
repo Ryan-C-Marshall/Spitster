@@ -48,11 +48,15 @@ const SILENT_QUESTION_TYPES: Set<Question['type']> = new Set(['artist-rank', 'of
 export function QuizPage() {
   const { mode: modeParam } = useParams<{ mode?: string }>();
   const gameMode = parseQuizMode(modeParam);
-  const { activeBingoTypes, classicInputSource } = useSettings();
+  const { activeBingoTypes, classicInputSource, bingoColorOverrides } = useSettings();
 
-  // Recomputed whenever the active-bingo-types setting changes; drives both
-  // the spinner's wedges and the color lookup used once it lands (below).
-  const bingoSections = useMemo(() => getBingoSpinnerSections(activeBingoTypes), [activeBingoTypes]);
+  // Recomputed whenever the active-bingo-types setting or a per-type color
+  // override changes; drives both the spinner's wedges and the color
+  // lookup used once it lands (below).
+  const bingoSections = useMemo(
+    () => getBingoSpinnerSections(activeBingoTypes, bingoColorOverrides),
+    [activeBingoTypes, bingoColorOverrides],
+  );
   const bingoColorByType = useMemo<Partial<Record<QuestionType, string>>>(
     () => Object.fromEntries(bingoSections.map((section) => [section.type, section.color])),
     [bingoSections],

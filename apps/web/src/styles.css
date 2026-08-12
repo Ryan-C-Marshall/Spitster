@@ -331,10 +331,10 @@ button:disabled {
   background: conic-gradient(
     from var(--angle),
     #fefc92,
-    #f7b2f4,
+    #fcc7fb,
     #6abbdf,
     #7ccb7f,
-    #b158f5,
+    #c295d7,
     #fefc92
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -604,6 +604,17 @@ button:disabled {
 .quiz-panel.bingo-question-glow .question-card h2 {
   color: var(--bingo-question-color);
   transition: color 300ms ease;
+}
+
+/* Highlights a specific player's name inline within a bingo question's
+   prompt text (e.g. "Three of these are in <name>'s top 100...") using the
+   same color the spinner landed on. Falls back to the inherited text color
+   when --bingo-question-color isn't set (var() with no fallback resolves
+   to the inherited value for an inherited property like `color`), so this
+   class is harmless if it's ever rendered outside a landed bingo question. */
+.bingo-important-highlight {
+  color: var(--bingo-question-color);
+  font-weight: 700;
 }
 
 .option-list {
@@ -917,13 +928,30 @@ button:disabled {
 .settings-checkbox-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+}
+
+.settings-checkbox-row:has(input:disabled) {
+  opacity: 0.6;
+}
+
+.settings-checkbox-row-label {
+  display: flex;
+  align-items: center;
   gap: 0.6rem;
   cursor: pointer;
 }
 
-.settings-checkbox-row:has(input:disabled) {
+.settings-checkbox-row-label:has(input:disabled) {
   cursor: not-allowed;
-  opacity: 0.6;
+}
+
+.settings-color-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .settings-color-swatch {
@@ -932,6 +960,26 @@ button:disabled {
   border-radius: 4px;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Interactive per-type swatch buttons in the settings panel's Bingo
+   questions section — clicking one assigns that palette color to the
+   question type on its row (see SettingsPanel / bingoColorOverrides). */
+.settings-color-swatch--button {
+  width: 1.3rem;
+  height: 1.3rem;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.settings-color-swatch--button:hover {
+  transform: scale(1.12);
+}
+
+.settings-color-swatch--selected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
 /* Number line — artist-song-count question. The dot's `left` is set

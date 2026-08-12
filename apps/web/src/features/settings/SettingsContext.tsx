@@ -16,6 +16,11 @@ interface SettingsContextValue {
   setClassicInputSource: (options: ClassicInputSourceOptions) => void;
   activeBingoTypes: Set<QuestionType>;
   setBingoTypeActive: (type: QuestionType, active: boolean) => void;
+  // Per-type spinner color chosen from the settings panel's swatch picker.
+  // A type with no entry here falls back to the default palette-cycling
+  // assignment — see getBingoSpinnerSections.
+  bingoColorOverrides: Partial<Record<QuestionType, string>>;
+  setBingoTypeColor: (type: QuestionType, color: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -27,6 +32,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [activeBingoTypes, setActiveBingoTypes] = useState<Set<QuestionType>>(
     () => new Set(DEFAULT_ACTIVE_BINGO_TYPES),
   );
+  const [bingoColorOverrides, setBingoColorOverrides] = useState<Partial<Record<QuestionType, string>>>({});
+
+  function setBingoTypeColor(type: QuestionType, color: string) {
+    setBingoColorOverrides((current) => ({ ...current, [type]: color }));
+  }
 
   function setBingoTypeActive(type: QuestionType, active: boolean) {
     setActiveBingoTypes((current) => {
@@ -44,8 +54,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(
-    () => ({ classicInputSource, setClassicInputSource, activeBingoTypes, setBingoTypeActive }),
-    [classicInputSource, activeBingoTypes],
+    () => ({
+      classicInputSource,
+      setClassicInputSource,
+      activeBingoTypes,
+      setBingoTypeActive,
+      bingoColorOverrides,
+      setBingoTypeColor,
+    }),
+    [classicInputSource, activeBingoTypes, bingoColorOverrides],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;

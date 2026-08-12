@@ -1,11 +1,18 @@
 import { useEffect } from 'react';
 
-import { BINGO_QUESTION_CATALOG, getBingoSpinnerSections } from '../quiz/bingoSpinnerSections.js';
+import { BINGO_COLOR_PALETTE, BINGO_QUESTION_CATALOG, getBingoSpinnerSections } from '../quiz/bingoSpinnerSections.js';
 import { CLASSIC_TIME_RANGE_OPTIONS, CLASSIC_TRACK_COUNT_OPTIONS } from './classicInputSourceOptions.js';
 import { useSettings } from './SettingsContext.js';
 
 export function SettingsPanel({ onClose }: { onClose: () => void }) {
-  const { classicInputSource, setClassicInputSource, activeBingoTypes, setBingoTypeActive } = useSettings();
+  const {
+    classicInputSource,
+    setClassicInputSource,
+    activeBingoTypes,
+    setBingoTypeActive,
+    bingoColorOverrides,
+    setBingoTypeColor,
+  } = useSettings();
 
   // Close on Escape, same as clicking the backdrop or the close button.
   useEffect(() => {
@@ -17,9 +24,10 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
   }, [onClose]);
 
   // Colors are previewed here exactly as the spinner will assign them —
-  // in catalog order, cycling through the palette — so unchecking/checking
-  // a box updates every swatch on screen live.
-  const previewSections = getBingoSpinnerSections(activeBingoTypes);
+  // a per-type override if one has been chosen, else catalog order cycling
+  // through the palette — so picking a swatch or toggling a checkbox
+  // updates every swatch on screen live.
+  const previewSections = getBingoSpinnerSections(activeBingoTypes, bingoColorOverrides);
   const colorByType = new Map(previewSections.map((section) => [section.type, section.color]));
 
   return (
@@ -87,30 +95,49 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
         <div className="settings-section">
           <h3>Bingo questions</h3>
           <p className="muted">
-            Choose which question types can come up. Active questions get spinner colors in this order, wrapping
-            around the palette if there are more active questions than colors.
+            Choose which question types can come up, and pick which color each one uses on the spinner. A type
+            with no color chosen falls back to the palette in the order above, wrapping around if there are more
+            active questions than colors.
           </p>
 
           <div className="settings-checkbox-list">
             {BINGO_QUESTION_CATALOG.map((entry) => {
               const isActive = activeBingoTypes.has(entry.type);
               const isOnlyActive = isActive && activeBingoTypes.size <= 1;
+              const currentColor = colorByType.get(entry.type);
 
               return (
-                <label key={entry.type} className="settings-checkbox-row">
-                  <input
-                    type="checkbox"
-                    checked={isActive}
-                    disabled={isOnlyActive}
-                    onChange={(event) => setBingoTypeActive(entry.type, event.target.checked)}
-                  />
-                  <span
-                    className="settings-color-swatch"
-                    style={{ backgroundColor: colorByType.get(entry.type) ?? 'transparent' }}
-                    aria-hidden="true"
-                  />
-                  <span>{entry.label}</span>
-                </label>
+                <div key={entry.type} className="settings-checkbox-row">
+                  <label className="settings-checkbox-row-label">
+                    <input
+                      type="checkbox"
+                      checked={isActive}
+                      disabled={isOnlyActive}
+                      onChange={(event) => setBingoTypeActive(entry.type, event.target.checked)}
+                    />
+                    <span>{entry.label}</span>
+                  </label>
+
+                  <div className="settings-color-picker" role="group" aria-label={`Color for ${entry.label}`}>
+                    {BINGO_COLOR_PALETTE.map((paletteColor) => {
+                      const isSelected = currentColor === paletteColor;
+
+                      return (
+                        <button
+                          key={paletteColor}
+                          type="button"
+                          className={`settings-color-swatch settings-color-swatch--button${
+                            isSelected ? ' settings-color-swatch--selected' : ''
+                          }`}
+                          style={{ backgroundColor: paletteColor }}
+                          aria-pressed={isSelected}
+                          aria-label={`Use this color for ${entry.label}`}
+                          onClick={() => setBingoTypeColor(entry.type, paletteColor)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

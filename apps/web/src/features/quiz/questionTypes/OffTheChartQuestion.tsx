@@ -29,8 +29,9 @@ export function OffTheChartQuestionView({
         <h2>Off the Chart</h2>
         <p></p>
         <p className="track-reveal-artist">
-          Three of these are in {question.displayName ?? question.spotifyUserId}&rsquo;s top 100 songs over the
-          last 4 weeks. Which one isn&rsquo;t?
+          Three of these are in{' '}
+          <span className="bingo-important-highlight">{question.displayName ?? question.spotifyUserId}</span>
+          &rsquo;s top 100 songs over the last 4 weeks. Which one isn&rsquo;t?
         </p>
       </div>
 

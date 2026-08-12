@@ -45,7 +45,7 @@ export const DEFAULT_ACTIVE_BINGO_TYPES: QuestionType[] = BINGO_QUESTION_CATALOG
 // to the start of the palette once there are more active questions than
 // colors — e.g. with 8 active question types, the 6th, 7th, and 8th reuse
 // the palette's 1st, 2nd, and 3rd colors.
-export const BINGO_COLOR_PALETTE: string[] = ['#fefc92', '#f7b2f4', '#6abbdf', '#7ccb7f', '#b158f5'];
+export const BINGO_COLOR_PALETTE: string[] = ['#fefc92', '#fcc7fb', '#6abbdf', '#7ccb7f', '#c295d7'];
 
 export interface BingoSpinnerSection extends BingoQuestionCatalogEntry {
   color: string;
@@ -53,14 +53,18 @@ export interface BingoSpinnerSection extends BingoQuestionCatalogEntry {
 
 /**
  * Builds the spinner's sections from the set of currently-active bingo
- * question types (see SettingsContext), preserving catalog order and
- * assigning colors from BINGO_COLOR_PALETTE in that same order (wrapping
- * around once the palette is exhausted). Falls back to the full catalog if
- * nothing is active, so the spinner never ends up with zero sections —
- * the settings panel itself also guards against deactivating everything.
+ * question types (see SettingsContext), preserving catalog order. Colors
+ * come from `colorOverrides` where a type has one (see the settings
+ * panel's per-type color picker, also stored on SettingsContext); any type
+ * without an override falls back to BINGO_COLOR_PALETTE assigned in
+ * catalog order, wrapping around once the palette is exhausted. Falls back
+ * to the full catalog if nothing is active, so the spinner never ends up
+ * with zero sections — the settings panel itself also guards against
+ * deactivating everything.
  */
 export function getBingoSpinnerSections(
   activeTypes: ReadonlySet<QuestionType> | readonly QuestionType[],
+  colorOverrides?: Partial<Record<QuestionType, string>>,
 ): BingoSpinnerSection[] {
   const activeSet = activeTypes instanceof Set ? activeTypes : new Set(activeTypes);
   const active = BINGO_QUESTION_CATALOG.filter((entry) => activeSet.has(entry.type));
@@ -68,6 +72,6 @@ export function getBingoSpinnerSections(
 
   return effective.map((entry, index) => ({
     ...entry,
-    color: BINGO_COLOR_PALETTE[index % BINGO_COLOR_PALETTE.length],
+    color: colorOverrides?.[entry.type] ?? BINGO_COLOR_PALETTE[index % BINGO_COLOR_PALETTE.length],
   }));
 }
