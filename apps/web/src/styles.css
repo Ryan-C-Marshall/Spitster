@@ -331,10 +331,10 @@ button:disabled {
   background: conic-gradient(
     from var(--angle),
     #fefc92,
-    #fcc7fb,
+    #f7b2f4,
     #6abbdf,
     #7ccb7f,
-    #c295d7,
+    #b158f5,
     #fefc92
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);

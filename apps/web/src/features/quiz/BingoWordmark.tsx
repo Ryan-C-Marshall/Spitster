@@ -4,10 +4,10 @@ import type { CSSProperties } from 'react';
 // spinning mode border, mapped onto the letters of the word itself.
 const BINGO_LETTER_COLORS: Record<string, string> = {
   B: '#fefc92ff',
-  I: '#fcc7fbff',
+  I: '#f7b2f4ff',
   N: '#6abbdfff',
   G: '#7ccb7fff',
-  O: '#c295d7ff',
+  O: '#b158f5ff',
 };
 
 /**

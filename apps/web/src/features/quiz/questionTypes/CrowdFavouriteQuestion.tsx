@@ -26,7 +26,7 @@ function getVennDiagramUrl(playerCount: number): string {
 // order the circles are drawn). This mapping is our best read of the
 // source SVGs — worth a manual visual check against each venn-diagram-N.svg
 // if a label's color ever looks like it doesn't match its circle.
-export const VENN_PLAYER_COLORS = ['#fefc92', '#fcc7fb', '#6abbdf', '#7ccb7f', '#c295d7'];
+export const VENN_PLAYER_COLORS = ['#fefc92', '#f7b2f4', '#6abbdf', '#7ccb7f', '#b158f5'];
 
 function getVennPlayerColor(index: number): string {
   return VENN_PLAYER_COLORS[index % VENN_PLAYER_COLORS.length];

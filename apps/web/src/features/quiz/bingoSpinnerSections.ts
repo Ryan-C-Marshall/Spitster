@@ -45,7 +45,7 @@ export const DEFAULT_ACTIVE_BINGO_TYPES: QuestionType[] = BINGO_QUESTION_CATALOG
 // to the start of the palette once there are more active questions than
 // colors — e.g. with 8 active question types, the 6th, 7th, and 8th reuse
 // the palette's 1st, 2nd, and 3rd colors.
-export const BINGO_COLOR_PALETTE: string[] = ['#fefc92', '#fcc7fb', '#6abbdf', '#7ccb7f', '#c295d7'];
+export const BINGO_COLOR_PALETTE: string[] = ['#fefc92', '#f7b2f4', '#6abbdf', '#7ccb7f', '#b158f5'];
 
 export interface BingoSpinnerSection extends BingoQuestionCatalogEntry {
   color: string;

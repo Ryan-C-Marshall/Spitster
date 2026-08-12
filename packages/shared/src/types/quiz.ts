@@ -163,9 +163,9 @@ export interface OffTheChartQuestion extends BaseQuestion {
  * `correctCount`.
  *
  * `numberLineMax` is the line's upper bound, computed server-side as
- * `min(round(A * correctCount), 100)` where `A = max(random() * random() *
- * 3, 1)` — two independent uniform randoms multiplied together (which
- * skews low) and then by 3, floored at 1 so the line's max can never end
+ * `min(round(A * correctCount), 100)` where `A = random() * random() *
+ * (2-1) + 1)` — two independent uniform randoms multiplied together (which
+ * skews low) and then by 2, plus 1 so the line's max can never end
  * up below the answer it needs to display. See artistSongCount.ts.
  */
 export interface ArtistSongCountQuestion extends BaseQuestion {
