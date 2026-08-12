@@ -12,6 +12,7 @@ import { artistRankGenerator } from './questionTypes/artistRank.js';
 import { nameTheTitleGenerator, nameTheArtistGenerator } from './questionTypes/nameTheSong.js';
 import { crowdFavoriteGenerator } from './questionTypes/crowdFavourite.js';
 import { offTheChartGenerator } from './questionTypes/offTheChart.js';
+import { artistSongCountGenerator } from './questionTypes/artistSongCount.js';
 import { getAnswerHistoryBucket, type AnswerHistory, type AnswerHistoryStore } from './answerHistory.service.js';
 
 /**
@@ -55,6 +56,7 @@ const generators: QuestionGenerator[] = [
   nameTheArtistGenerator,
   crowdFavoriteGenerator,
   offTheChartGenerator,
+  artistSongCountGenerator,
 ];
 
 export async function generateQuestion(input: {

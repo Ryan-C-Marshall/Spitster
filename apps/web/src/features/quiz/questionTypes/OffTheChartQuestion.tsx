@@ -30,11 +30,11 @@ export function OffTheChartQuestionView({
         <p></p>
         <p className="track-reveal-artist">
           Three of these are in {question.displayName ?? question.spotifyUserId}&rsquo;s top 100 songs over the
-          last 4 weeks — one isn&rsquo;t. Which one?
+          last 4 weeks. Which one isn&rsquo;t?
         </p>
       </div>
 
-      <div className="song-card-row">
+      <div className="song-card-row four-options">
         {question.options.map((track) => {
           const isPlaying = track.uri === currentTrackUri;
           const isCorrect = revealed && track.id === question.correctTrackId;

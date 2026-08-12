@@ -675,6 +675,14 @@ button:disabled {
   gap: 1rem;
 }
 
+/* Compound selector (higher specificity than either single class alone)
+   so this always wins over .song-card-row's auto-fit columns above,
+   regardless of declaration order — used by OffTheChartQuestion to force
+   a fixed 2x2 grid like the other always-four-option question types. */
+.song-card-row.four-options {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .song-card {
   justify-content: flex-start;
   align-items: stretch; /* new — let content fill the stretched card height */
@@ -924,4 +932,60 @@ button:disabled {
   border-radius: 4px;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Number line — artist-song-count question. The dot's `left` is set
+   inline (a 0..1 fraction of the track's width) and animated every frame
+   via requestAnimationFrame while unrevealed; on reveal it gets a CSS
+   transition instead so it glides to the final answer rather than
+   snapping instantly. */
+.number-line-container {
+  padding: 1.5rem 0.75rem 0.5rem;
+}
+
+.number-line-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.number-line-dot {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8dd8ff;
+  box-shadow: 0 0 0 4px rgba(141, 216, 255, 0.2);
+  transform: translate(-50%, -50%);
+}
+
+.number-line-dot--revealed {
+  transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.25), 0 0 18px 4px rgba(255, 255, 255, 0.5);
+}
+
+.number-line-dot-label {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -8px);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(20, 22, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.number-line-endpoints {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(245, 247, 251, 0.7);
 }

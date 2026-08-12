@@ -6,6 +6,7 @@ import { ArtistRankQuestionView } from './questionTypes/ArtistRankQuestion.js';
 import { NameTheSongQuestionView } from './questionTypes/NameTheSongQuestion.js';
 import { CrowdFavoriteQuestionView, type CrowdFavoriteDot } from './questionTypes/CrowdFavouriteQuestion.js';
 import { OffTheChartQuestionView } from './questionTypes/OffTheChartQuestion.js';
+import { ArtistSongCountQuestionView } from './questionTypes/ArtistSongCountQuestion.js';
 
 export function QuestionView({
   question,
@@ -39,6 +40,8 @@ export function QuestionView({
       );
     case 'off-the-chart':
       return <OffTheChartQuestionView question={question} revealed={revealed} />;
+    case 'artist-song-count':
+      return <ArtistSongCountQuestionView question={question} revealed={revealed} />;
     default: {
       // @ts-ignore
       const _exhaustive: never = question;

@@ -1,4 +1,4 @@
-import type { SpotifyTrackSummary } from './spotify.js';
+import type { SpotifyArtistSummary, SpotifyTrackSummary } from './spotify.js';
 
 /**
  * Every question type gets a literal here. Adding a new question type means:
@@ -15,7 +15,8 @@ export type QuestionType =
   | 'name-the-title'
   | 'name-the-artist'
   | 'crowd-favorite'
-  | 'off-the-chart';
+  | 'off-the-chart'
+  | 'artist-song-count';
 
 /**
  * 'bingo' serves a random mix of every question type except 'crowd-favorite'.
@@ -154,6 +155,30 @@ export interface OffTheChartQuestion extends BaseQuestion {
   correctTrackId: string;
 }
 
+/**
+ * "How many songs?" — samples one connected player's top 100 songs over
+ * the last 4 weeks and picks one of the 5 artists with the most songs in
+ * that list. Answered via a number line rather than multiple choice: a dot
+ * bounces back and forth across it until the reveal, then snaps to
+ * `correctCount`.
+ *
+ * `numberLineMax` is the line's upper bound, computed server-side as
+ * `min(round(A * correctCount), 100)` where `A = max(random() * random() *
+ * 3, 1)` — two independent uniform randoms multiplied together (which
+ * skews low) and then by 3, floored at 1 so the line's max can never end
+ * up below the answer it needs to display. See artistSongCount.ts.
+ */
+export interface ArtistSongCountQuestion extends BaseQuestion {
+  type: 'artist-song-count';
+  spotifyUserId: string;
+  displayName: string | null;
+  artist: SpotifyArtistSummary;
+  /** How many of the player's top-100 songs (short term) are by this artist. */
+  correctCount: number;
+  /** Upper bound of the number line; always >= correctCount, <= 100. */
+  numberLineMax: number;
+}
+
 export type Question =
   | WhoseTopTrackQuestion
   | GuessThePlaylistQuestion
@@ -161,4 +186,5 @@ export type Question =
   | NameTheTitleQuestion
   | NameTheArtistQuestion
   | CrowdFavoriteQuestion
-  | OffTheChartQuestion;
+  | OffTheChartQuestion
+  | ArtistSongCountQuestion;
